@@ -1,0 +1,75 @@
+/* General styles for the sign-in page */
+.sign-in {
+    background-color: #f5f5f5;
+    padding: 50px 0;
+  }
+  
+  .form-container {
+    background-color: #fff;
+    border-radius: 8px;
+    /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .loginform-container {
+    width: 100%;
+  }
+  
+  h4 {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .typography-subtext {
+    color: #757575;
+  }
+  
+  
+
+  
+  
+  button {
+    border-radius: 8px;
+  }
+  
+  input {
+    margin-bottom: 20px;
+  }
+  
+  h6 {
+    font-weight: 400;
+    margin-bottom: 20px;
+  }
+  
+  /* Style for the "Send OTP" button */
+  button[type="submit"] {
+    background-color: #0066ff;
+    color: #fff;
+    font-weight: 500;
+    padding: 10px;
+    transition: background-color 0.3s ease;
+  }
+  
+  button[type="submit"]:hover {
+    background-color: #0055cc;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .sign-in {
+      padding: 30px 0;
+    }
+  
+    .form-container {
+      padding: 20px;
+    }
+  
+    .blue-box {
+      padding: 30px;
+    }
+  }
+  
