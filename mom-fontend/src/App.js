@@ -5,7 +5,7 @@ import OTPVerification from './component/Verify-Otp/Verify-Otp';
 import Dashboard from './component/Dashboard/Dashboard';
 import './App.css';
 import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; // Import the default styling for toast notifications
+import 'react-toastify/dist/ReactToastify.css'; 
 
 function App() {
   return (

@@ -3,10 +3,10 @@ const Users = require('../model/userModel')
 const bcrypt = require('bcrypt')
 const { sendOtpEmail } = require('../eMailsetUp/mailSetUp')
 
-//FUNCTION TO GENERATE A RANDOM 4-DIGIT OTP
-const generateOTP = () => {
-    Math.floor(1000 + Math.random() * 9000).toString();
-}
+const OTP_EXPIRATION_TIME = process.env.OTP_EXPIRATION_TIME || 5 * 60 * 1000; // 5 minutes by default
+const OTP_COOLDOWN_PERIOD = process.env.OTP_COOLDOWN_PERIOD || 15 * 60 * 1000; // 15 minutes by default
+const MAX_REQUESTS = process.env.MAX_REQUESTS || 3; // Max 3 requests by default
+
 
 
 //FUNCTION TO LOGIN USING EMAIL & PASSWORD
@@ -50,64 +50,103 @@ const signup = async (name, email, password) => {
 }
 
 const generateAndSaveOtp = async (email) => {
+    // Check if the email exists in the users collection
     const user = await Users.findOne({ email });
+    
     if (!user) {
-        throw new Error("This email is not valid");
+        // If email doesn't exist in users' database, return error
+        return { emailNotRegistered: true, };
     }
 
-    let otprecord = await OTP.findOne({ email });
+    const now = Date.now();
+    let otpRecord = await OTP.findOne({ email });
 
-    if (otprecord) {
-        const timeDiff = (new Date() - new Date(otprecord.createdAt)) / (1000 * 60); // Time difference in minutes
+    // Generate new OTP
+    const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        if (otprecord.attempts >= 3 && timeDiff < 15) {
-            // Maximum attempts reached and within the 15-minute window
-            throw new Error('Maximum attempts reached. Please try again later.');
+    if (otpRecord) {
+        const isExpired = now - otpRecord.createdAt > OTP_EXPIRATION_TIME; // Check if OTP expired
+        const currentTime = Date.now();
+
+        if (isExpired) {
+            // OTP expired, reset attempts and set new OTP
+            otpRecord.otp = newOtp;
+            otpRecord.createdAt = currentTime;
+            otpRecord.attempts = 1;
+        
+        } else if (otpRecord.attempts >= MAX_REQUESTS) {
+            // Max OTP requests reached
+            return { maxOtpReached: true };
+        } else {
+            // Increment attempts if not expired and not verified
+            otpRecord.otp = newOtp;
+            otpRecord.attempts += 1;
         }
-
-        if (timeDiff >= 15) {
-            // If more than 15 minutes have passed, reset attempts and generate a new OTP
-            otprecord.attempts = 0;
-        }
-
-        // Increment attempt count if attempts are less than 3
-        otprecord.attempts += 1;
-
-        // If time has expired or attempts need reset, generate a new OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a new 6-digit OTP
-
-        otprecord.otp = otp;
-        otprecord.createdAt = new Date(); // Reset creation time
-        otprecord.expiresAt = new Date(Date.now() + 15 * 60 * 1000); // OTP expires in 15 minutes
-
-        await otprecord.save(); // Save the updated OTP record
-
-        return otp; // Return OTP for testing (only for testing, don't send OTP in production)
     } else {
-        // If no OTP exists for the email, generate a new OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a new 6-digit OTP
-        otprecord = new OTP({
+        // If no OTP record found, create new one
+        otpRecord = new OTP({
             email,
-            otp,
-            attempts: 1, // First attempt
-            createdAt: new Date(),
-            expiresAt: new Date(Date.now() + 15 * 60 * 1000), // OTP expires in 15 minutes
+            otp: newOtp,
+            attempts: 1,
+            createdAt: now,
+            expiresAt: new Date(Date.now() + OTP_EXPIRATION_TIME),
         });
+    }
 
-        await otprecord.save(); // Save the new OTP record
+    // Save OTP record
+    await otpRecord.save();
 
-        return otp; // Return OTP for testing (only for testing, don't send OTP in production)
+    // Send OTP via email
+    const emailSubject = 'OTP to Verify Your Email to Schedule a Demo with MinutesVault';
+    const mailData = `<p>Thank you for your interest. Your OTP is <strong>${otpRecord.otp}</strong>. It will expire in 10 minutes.</p>`;
+    await sendOtpEmail(email, emailSubject, mailData);
+
+    // Return OTP details
+    return { otp: otpRecord.otp, attempts: otpRecord.attempts, otpSent: true };
+};
+
+
+const verifyOTP = async (email, otp) => {
+    try {
+        if (!email || !otp) {
+            return { success: false, message: 'Email and OTP are required' };
+        }
+
+        // Find the OTP record for the email
+        const otpRecord = await OTP.findOne({ email });
+        if (!otpRecord) {
+            return { success: false, message: 'No OTP record found for this email' };
+        }
+
+        const currentTime = Date.now();
+
+        // Check if OTP has expired
+        if (currentTime - otpRecord.createdAt > OTP_EXPIRATION_TIME) {
+            await OTP.deleteOne({ email });
+            return { success: false, message: 'OTP has expired. Please request a new one.' };
+        }
+
+       
+        // Check if OTP matches
+        if (otpRecord.otp !== otp) {
+            otpRecord.attempts += 1;
+            await otpRecord.save();
+            return { success: false, invalidOtp: true, message: 'Invalid OTP' };
+        }
+
+        // OTP is valid
+        otpRecord.isVerified = true;
+        otpRecord.verifiedAt = currentTime;
+        await otpRecord.save();
+
+        return { success: true, verified: true, message: 'OTP verified successfully' };
+    } catch (error) {
+        console.error('Error during OTP verification:', error);
+        return { success: false, message: error.message || 'Internal server error' };
     }
 };
 
 
-
-const verifyotp = async (email, otp) => {
-    const otprecord = await OTP.findOne({ email, otp });
-    if (!otprecord) {
-        throw new Error('Invalid OTP')
-    }
-}
 
 const resetPassword = async (email, otp, password, nwpassword) => {
     // Ensure that both password and new password are strings
@@ -155,6 +194,6 @@ module.exports = {
     login,
     signup,
     generateAndSaveOtp,
-    verifyotp,
+    verifyOTP,
     resetPassword
 }

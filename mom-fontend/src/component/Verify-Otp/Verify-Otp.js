@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'; // For navigation after OTP veri
 import { verifyOTP } from '../../services/api';
 import './Verify.css'; // Import the CSS
 
+import { ToastContainer,toast } from 'react-toastify';
+
 const VerifyOTP = () => {
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState({
@@ -17,7 +19,6 @@ const VerifyOTP = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate(); // For page redirection
 
-  // Use effect to get the email from localStorage
   useEffect(() => {
     const storedEmail = localStorage.getItem('email');
     if (storedEmail) {
@@ -27,52 +28,70 @@ const VerifyOTP = () => {
     }
   }, []);
 
-  // Handle OTP input change
+
   const handleOtpChange = (e, nextField, prevField) => {
     const { name, value } = e.target;
+  
+    // Update the OTP state
     setOtp((prevOtp) => ({
       ...prevOtp,
       [name]: value
     }));
-
-    // Move focus to the next or previous field
+  
+    // Move focus to the next field if one character is entered
     if (value.length === 1 && nextField) {
       document.getElementsByName(nextField)[0].focus();
-    } else if (value.length === 0 && prevField) {
+    } 
+    // Move focus back to the previous field if Backspace is pressed and the current field is empty
+    else if (e.key === 'Backspace' && value.length === 0 && prevField) {
       document.getElementsByName(prevField)[0].focus();
     }
   };
-
-  // Verify OTP handler
-  const verifyOTPHandler = async (e) => {
-    e.preventDefault();
-    const otpValue = Object.values(otp).join('');
-    
-    if (!email) {
-      setErrorMessage('Email not found. Please check your email.');
-      return;
-    }
-
-    if (otpValue.length === 6) {
-      try {
-        // Call the backend API to verify OTP
-        const result = await verifyOTP(email, otpValue);
-
-        // Handle successful OTP verification
-        if (result.success === true) {
-          setSuccessMessage('OTP verified successfully!');
-          navigate('/dashboard');  // Redirect to a success page or another route
-        } else {
-          setErrorMessage('OTP verification failed. Please try again.');
-        }
-      } catch (error) {
-        console.error('OTP verification failed:', error.message);
-        setErrorMessage('An error occurred while verifying OTP. Please try again.');
-      }
-    } else {
-      setErrorMessage('Please enter a valid 6-digit OTP.');
+  
+  // Add an event listener to detect 'Backspace' specifically
+  const handleKeyDown = (e, prevField) => {
+    if (e.key === 'Backspace' && prevField && e.target.value.length === 0) {
+      document.getElementsByName(prevField)[0].focus();
     }
   };
+  
+
+
+  
+  const verifyOTPHandler = async (e) => {
+    e.preventDefault();
+  
+    const otpValue = Object.values(otp).join('');
+    let errorMessage = '';
+ 
+    if (!email) {
+      errorMessage = 'Email not found. Please check your email.';
+      setErrorMessage(errorMessage);
+      toast.error(errorMessage, { autoClose: 2000 });
+      return;
+    }
+  
+    try {
+      
+      const result = await verifyOTP(email, otpValue);
+  
+      if (result.success) {
+        toast.success(result.message , { autoClose: 2000 });
+
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 2500);
+      } else {
+        errorMessage = result.message ;
+        toast.error(errorMessage, { autoClose: 2000 });
+      }
+    } catch (error) {
+      errorMessage = error.message ;
+      toast.error(errorMessage, { autoClose: 3000 });
+    }
+  };
+  
+  
 
   return (
     <section className="sign-in">
@@ -131,6 +150,7 @@ const VerifyOTP = () => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </section>
   );
 };

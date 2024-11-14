@@ -40,7 +40,16 @@ const messages = {
     incorrectPassword: 'Incorrect password. Please try again.',
     unexpectedError: 'An unexpected error occurred. Please try again.',
     emailRequired: 'Please enter a registered email address.',
-    passwordRequired: 'Incorrect password. Please try again.'
+    passwordRequired: 'Incorrect password. Please try again.',
+    OTP_GENERATION_SUCCESS: 'OTP sent successfully! Please check your email.',
+    INVALID_EMAIL: 'This email is not valid.',
+    MAX_ATTEMPTS_REACHED: 'Maximum attempts reached. Please try again later.',
+    OTP_ERROR: 'An error occurred while generating OTP.',
+    emailnotRegister: 'Please enter a registered email ID.',
+    emailRequired:'Email required',
+    otpRequired:'Otp Required',
+    invalidEmailFormat:'Invalid Email Format',
+    invalidOtpFormat:'Invalid OTP Format'
 };
 
 module.exports = messages;
