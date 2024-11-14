@@ -36,3 +36,71 @@
     transform: rotate(360deg);
   }
 }
+
+/* Global styles for the toast box */
+.Toastify__toast {
+  background-color: #333;
+  color: #fff;
+  font-family: 'Arial', sans-serif;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s ease;
+}
+
+/* Success toast box design */
+.Toastify__toast--success {
+  background-color: #72cc87;
+  color: white;
+  border-left: 5px solid #dfdfdf;
+}
+
+/* Error toast box design */
+.Toastify__toast--error {
+  background-color: #e07c86;
+  color: white;
+  border-left: 5px solid #811e28;
+}
+
+/* Info toast box design */
+.Toastify__toast--info {
+  background-color: #17a2b8;
+  color: white;
+  border-left: 5px solid #117a8b;
+}
+
+/* Warning toast box design */
+.Toastify__toast--warning {
+  background-color: #ffc107;
+  color: white;
+  border-left: 5px solid #e0a800;
+}
+
+/* Toast icon styling */
+.Toastify__toast-icon {
+  margin-right: 12px; 
+  font-size: 20px;    
+}
+
+/* Toast close button (X) styling */
+.Toastify__close-button {
+  color: white;
+  font-size: 18px;
+  margin-left: auto;
+  cursor: pointer;
+}
+
+/* Progress bar styling */
+.Toastify__progress-bar {
+  background-color: #eeec69 !important;
+  height: 4px;
+  border-radius: 2px;
+}
+
+/* Hover effect for the toast */
+.Toastify__toast:hover {
+  transform: translateY(-5px);
+}

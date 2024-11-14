@@ -1,23 +1,39 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
 import Login from './component/Login/Login';
 import Signin from './component/sign-in-OTP/Signin';
 import OTPVerification from './component/Verify-Otp/Verify-Otp';
 import Dashboard from './component/Dashboard/Dashboard';
+import 'react-toastify/dist/ReactToastify.css';
+import SignUp from './component/SignUp/SignUp';
 import './App.css';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; 
 
 function App() {
+
+
   return (
     <Router>
-      {/* The ToastContainer should be placed inside the Router so it can work globally */}
-      <ToastContainer />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+      
+     
 
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/signin" element={<Signin />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/verify-otp" element={<OTPVerification />} /> 
+        <Route path="/verify-otp" element={<OTPVerification />} />
+        <Route path="/sign-up" element={<SignUp/>}/>
       </Routes>
     </Router>
   );

@@ -1,33 +1,44 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-// Define user schema
+
 const userSchema = new Schema({
   name: {
     type: String,
     required: true,
-    trim: true, // Removes whitespace from both ends of the string
+    trim: true, 
+  },
+  mobile: {
+    type: Number,
+    required: true, 
+    unique: true, 
+    trim: true, 
   },
   email: {
     type: String,
     required: true,
-    unique: true, // Ensures that the email is unique across the collection
+    unique: true, 
+    lowercase: true, 
+  },
+  address: {
+    type: String,
+    required: true, 
   },
   password: {
     type: String,
-    required: true, // The current password field
+    required: true, 
   },
   newPassword: {
-    type: String, // Temporary field to store the new password during reset process
-    required: false, // This is not a permanent field, so it doesn't need to be required
+    type: String, 
+    required: false, 
   },
   role: {
     type: String,
-    default: 'user', // Default role for the user
+    default: 'user', 
   },
 }, {
-  timestamps: true, // Adds createdAt and updatedAt timestamps
+  timestamps: true, 
 });
 
-// Export the model based on the schema
+
 module.exports = mongoose.model('User', userSchema);

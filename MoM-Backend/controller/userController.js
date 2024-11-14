@@ -25,17 +25,42 @@ const login = async (req, res) => {
 };
 
 
-// Signup Controller
+
 const signup = async (req, res) => {
+    const { name, mobile, email, address, password } = req.body;
+
     try {
-        const { name, email, password } = req.body;
-        await authService.signup(name, email, password);
-        return Responses.successResponse(req, res, {name,email,password}, messages.signupSuccess, 201);
+        // Validate if password is provided
+        if (!password) {
+            return Responses.failResponse(req, res, null, messages.passwordRequired, 400);
+        }
+        if (!address) {
+            return Responses.failResponse(req, res, null, messages.addressRequired, 400);
+        }
+        if (!name) {
+            return Responses.failResponse(req, res, null, messages.nameisrequired, 400);
+        }
+
+        // Call the signup service to register the user
+        const result = await authService.signup(name, mobile, email, address, password);
+
+        // If user already exists, return an error response
+        if (result.userAlreadyExists) {
+            return Responses.failResponse(req, res, null, messages.userAlreadyExists, 400);
+        }
+
+        // If signup is successful, return success response with user data
+        return Responses.successResponse(req, res, { name, mobile, email, address ,password}, messages.signupSuccess, 201);
+
     } catch (error) {
-        console.log(error);
-        return Responses.errorResponse(req, res, error);
+        console.error('Error during signup:', error);
+
+        // Return error response if something went wrong
+        return Responses.failResponse(req, res, null, messages.GENERAL_ERROR, 500);
     }
 };
+
+
 
 // OTP Generation Logic (Modified)
 const generateOtp = async (req, res) => {

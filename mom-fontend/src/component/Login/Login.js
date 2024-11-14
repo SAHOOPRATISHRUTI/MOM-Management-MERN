@@ -3,7 +3,7 @@ import './Login.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { loginUser } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
-import { TextField, Button, Container, Grid, Typography, Box, Alert } from '@mui/material'; // Material UI imports
+import { TextField, Button, Container, Grid, Typography, Box } from '@mui/material'; // Material UI imports
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom';
@@ -105,7 +105,7 @@ function Login() {
                 </div>
 
                 <Button variant="outlined" fullWidth href="/signup" sx={{ marginTop: 2 }}>
-                  Sign Up
+                <Link to ="/sign-up">Sign Up</Link>
                 </Button>
 
                 <a href="/" style={{ display: 'block', textAlign: 'center', marginTop: '15px' }}>

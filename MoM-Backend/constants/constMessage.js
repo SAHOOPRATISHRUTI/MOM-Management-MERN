@@ -49,7 +49,14 @@ const messages = {
     emailRequired:'Email required',
     otpRequired:'Otp Required',
     invalidEmailFormat:'Invalid Email Format',
-    invalidOtpFormat:'Invalid OTP Format'
+    invalidOtpFormat:'Invalid OTP Format',
+    signupSuccess: "User registered successfully.",
+    passwordRequired: "Password is required.",
+    addressRequired: "Address is required.",
+    userAlreadyExists: "User already exists.",
+    internalError: "An error occurred during signup, please try again later.",
+    invalidCredentials: "Invalid credentials, please try again.",
+    nameisrequired:"Name is Required"
 };
 
 module.exports = messages;

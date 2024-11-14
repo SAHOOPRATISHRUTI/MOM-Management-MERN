@@ -1,8 +1,7 @@
 const OTP = require('../model/otpModel')
-const Users = require('../model/userModel')
-const bcrypt = require('bcrypt')
 const { sendOtpEmail } = require('../eMailsetUp/mailSetUp')
-
+const bcrypt = require('bcrypt');
+const Users = require('../model/userModel')
 const OTP_EXPIRATION_TIME = process.env.OTP_EXPIRATION_TIME || 5 * 60 * 1000; // 5 minutes by default
 const OTP_COOLDOWN_PERIOD = process.env.OTP_COOLDOWN_PERIOD || 15 * 60 * 1000; // 15 minutes by default
 const MAX_REQUESTS = process.env.MAX_REQUESTS || 3; // Max 3 requests by default
@@ -33,21 +32,64 @@ const login = async (email, password) => {
 }
 
 
-const signup = async (name, email, password) => {
+
+
+// Service to handle user signup
+const signup = async (name, mobile, email, address, password) => {
+    // Validate inputs (you can add more validation as needed)
     if (typeof password !== 'string') {
-        password = String(password) //ENSURE THAT PASSWORD IS STRING
+        password = String(password); // Ensure the password is a string
     }
 
-    const exitingUser = await Users.findOne({ email })
-    if (exitingUser) {
-        throw new Error('User Already Exists')
+    // Check if the user already exists by email or mobile number
+    const existingUser = await Users.findOne({ $or: [{ email }, { mobile }] });
+    if (existingUser) {
+        throw new Error('User already exists with the given email or mobile number');
     }
 
-    const hashPassword = await bcrypt.hash(password, 10)
-    const newUser = new Users({ name, email, password: hashPassword })
-    await newUser.save()
+    // Hash the password before saving to the database
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-}
+    // Create a new user instance with the provided details
+    const newUser = new Users({
+        name,
+        mobile,
+        email,
+        address,
+        password: hashedPassword
+    });
+
+    // Save the new user to the database
+    await newUser.save();
+
+    return { message: 'User registered successfully!' }; // You can customize this response as needed
+};
+
+// Service to handle password update (for example, during password reset)
+const updatePassword = async (email, newPassword) => {
+    // Validate new password (you can add more checks)
+    if (typeof newPassword !== 'string') {
+        throw new Error('Password should be a string');
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Find user by email and update the password
+    const updatedUser = await Users.findOneAndUpdate(
+        { email },
+        { password: hashedPassword },
+        { new: true } // This ensures the updated user object is returned
+    );
+
+    if (!updatedUser) {
+        throw new Error('User not found');
+    }
+
+    return { message: 'Password updated successfully!' };
+};
+
+
 
 const generateAndSaveOtp = async (email) => {
     // Check if the email exists in the users collection
@@ -195,5 +237,6 @@ module.exports = {
     signup,
     generateAndSaveOtp,
     verifyOTP,
-    resetPassword
+    resetPassword,
+    updatePassword
 }

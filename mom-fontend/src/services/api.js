@@ -70,4 +70,30 @@ const verifyOTP = async (email, otp) => {
 };
 
 
-export { loginUser, generateOTP, verifyOTP };
+// Signup User
+const signupUser = async (name, mobile, email, address ,password) => {
+  try {
+    console.log("Sending signup request with:", name, mobile, email, address ,password); // Log request
+    const response = await axios.post(`${API_URL}/signup`, { name, mobile, email, address ,password});
+    return response.data;  
+  } catch (error) {
+    // Log the error message
+    if (error.response) {
+      console.error('Server Error:', error.response.data.message);
+      throw new Error(error.response.data.message || 'Signup failed');
+    } else if (error.request) {
+      console.error('No response from server:', error.request);
+      throw new Error('No response from server');
+    } else {
+      console.error('Error during request:', error.message);
+      throw new Error('An error occurred during signup request');
+    }
+  }
+};
+
+
+
+
+
+
+export { loginUser, generateOTP, verifyOTP ,signupUser};
