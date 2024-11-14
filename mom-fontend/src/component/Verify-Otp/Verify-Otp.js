@@ -4,6 +4,7 @@ import { verifyOTP, generateOTP } from '../../services/api';
 import { TextField, Button, IconButton, Box, Typography, Grid } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
 import { ToastContainer, toast } from 'react-toastify';
+import { Link } from 'react-router-dom';
 import './Verify.css';
 
 const VerifyOTP = () => {
@@ -74,27 +75,27 @@ const VerifyOTP = () => {
 
   const resendOTPHandler = async () => {
     setIsResending(true);
-    setErrorMessage('');  
-  
+    setErrorMessage('');
+
     try {
       const result = await generateOTP(email);
       if (result.success) {
         toast.success(result.message, { autoClose: 2000 });
       } else {
-        
+
         toast.error(result.message, { autoClose: 2000 });
       }
     } catch (error) {
-      
-      toast.error(error.message , { autoClose: 3000 });
+
+      toast.error(error.message, { autoClose: 3000 });
     }
-  
+
     // Reset "Resending..." text after 3 seconds
     setTimeout(() => {
       setIsResending(false);
     }, 3000);
   };
-  
+
 
   return (
     <section className="sign-in">
@@ -147,22 +148,38 @@ const VerifyOTP = () => {
                 </Button>
 
                 <Box display="flex" justifyContent="space-between" alignItems="center" marginTop={2}>
-                  <IconButton href="/" color="primary">
-                    <ArrowBack />
+                  <IconButton
+                    href="/"
+                    color="primary"
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      backgroundColor: 'transparent',
+                      borderRadius: '8px',
+                      padding: '6px 12px',
+                      '&:hover': {
+                        backgroundColor: '#f5f5f5',
+                      },
+                    }}
+                  >
+                    <ArrowBack sx={{ marginRight: 1 }} />
+                    <Typography variant="body2" sx={{ textDecoration: 'none' }}>
+                      Back to Sign In
+                    </Typography>
                   </IconButton>
+
                   <Typography variant="body2">
                     <a
                       href="#!"
                       onClick={(e) => {
                         e.preventDefault();
-                        resendOTPHandler();  // Call resendOTPHandler when clicking Resend OTP
+                        resendOTPHandler();
                       }}
                       style={{ cursor: 'pointer', textDecoration: 'none' }}
                     >
                       {isResending ? 'Resending...' : 'Resend OTP'}
                     </a>
                   </Typography>
-
                 </Box>
               </form>
             </Box>
