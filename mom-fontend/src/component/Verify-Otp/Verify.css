@@ -1,148 +1,184 @@
-.pincode {
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  .digit input {
-    width: 40px;
-    height: 40px;
-    text-align: center;
-    font-size: 18px;
-    margin: 5px;
-    border: 5px black;
-  }
-  
-  .btn1 {
-    background-color: #0b77e8;
-    color: white;
-    padding: 10px;
-    border: none;
-    width: 100%;
-    margin-top: 20px;
-    cursor: pointer;
-  }
-  
-  .resend a {
-    color: #0b77e8;
-    cursor: pointer;
-  }
-  .digit{
-    border: 5px black;
-  }
-  /* Add styles for the OTP verification page */
+/* Login.css */
+
+/* Overall section styling */
+.user-login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f4f6f9;
+}
+
+.loginform-container {
+  padding: 0px;
+   border-radius: 0px !important ;
+   box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1) !important ;
+   background-color: white !important ;
+  max-width: 400px;
+  width: 100% !important ;
+}
+/* Logo image styling */
+.ntspl-logo {
+  width: 100px;
+  margin: 0 auto;
+  display: block;
+  margin-bottom: 20px;
+}
+
+/* Section heading and subheading */
+h4, h6 {
+  text-align: center;
+}
+
+/* Button styles */
+button {
+  text-transform: none;
+}
+
+/* Error message styling */
+.error-message {
+  color: red;
+  font-size: 14px;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.account {
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* Styling for the back to sign-in link */
+.back {
+  font-size: 14px;
+  text-align: center;
+  color: #007bff;
+}
+
+.back a {
+  text-decoration: none;
+  color: #007bff;
+}
+
+.back a:hover {
+  text-decoration: underline;
+}
+
+/* Styling for the right-side section with meeting image */
+.blue-box {
+  background-color: #0056b3;
+  color: white;
+  padding: 30px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.blue-box img {
+  max-width: 80%;
+  margin-top: 20px;
+}
+
+.copyright {
+  font-size: 12px;
+  color: #666;
+  margin-top: 10px;
+}
+
+/* VerifyOTP.css */
 
 .sign-in {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
-  
-  .loginform-container {
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .text h4 {
-    font-size: 24px;
-    margin-bottom: 10px;
-  }
-  
-  .text p {
-    font-size: 16px;
-    margin-bottom: 20px;
-  }
-  
-  .form-group {
-    margin-bottom: 20px;
-  }
-  
-  .pincode {
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  .digit input {
-    width: 50px;
-    height: 50px;
-    text-align: center;
-    font-size: 24px;
-    border-radius: 5px;
-    border: 1px solid #ddd;
-  }
-  
-  .error-message {
-    color: red;
-    font-size: 14px;
-    margin-top: 10px;
-  }
-  
-  .btn1 {
-    background-color: #0b77e8;
-    color: #fff;
-    padding: 10px 20px;
-    border: none;
-    width: 100%;
-    cursor: pointer;
-    border-radius: 5px;
-    font-size: 16px;
-  }
-  
-  .back-resend {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-  }
-  
-  .resend a {
-    color: #0b77e8;
-    text-decoration: none;
-    font-size: 14px;
-  }
-  
-  .back-arrow {
-    display: flex;
-    align-items: center;
-  }
-  
-  .back-arrow .back svg {
-    margin-right: 5px;
-  }
-  
-  .blue-box-cont {
-    background-color: #0b77e8;
-    color: #fff;
-    padding: 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .blue-box {
-    text-align: center;
-  }
-  
-  .slider-cont h2 {
-    font-size: 32px;
-    margin-bottom: 10px;
-  }
-  
-  .slider-cont h6 {
-    font-size: 18px;
-  }
-  
-  .white-box img {
-    max-width: 100%;
-  }
-  
-  .copyright {
-    text-align: center;
-    font-size: 12px;
-    margin-top: 20px;
-  }
-  
+  background-color: #f4f6f9;
+}
+
+.container-fluid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* .loginform-container {
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  max-width: 400px;
+  width: 100%;
+} */
+
+.sign-in h4 {
+  text-align: center;
+}
+
+.sign-in .ntspl-logo {
+  width: 100px;
+  margin: 0 auto;
+  display: block;
+  margin-bottom: 20px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+form .MuiTextField-root {
+  margin-bottom: 15px;
+}
+
+/* OTP input field styling */
+.otp-input {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.otp-input input {
+  width: 50px;
+  text-align: center;
+  font-size: 18px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+button[type="submit"] {
+  background-color: #0056b3;
+  color: white;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+button[type="submit"]:hover {
+  background-color: #003f8c;
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+  text-align: center;
+}
+
+.resend-otp {
+  text-align: center;
+  font-size: 14px;
+}
+
+.resend-otp a {
+  color: #0056b3;
+  text-decoration: none;
+}
+
+.resend-otp a:hover {
+  text-decoration: underline;
+}
+
+.back {
+  color: #0056b3;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.back:hover {
+  text-decoration: underline;
+}
