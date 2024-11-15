@@ -1,65 +1,97 @@
 const authService = require('../service/userService');
 const Responses = require('../helpers/response');
 const messages = require('../constants/constMessage');
+const validator = require('validator')
+
 
 
 
 const login = async (req, res) => {
+    const { email, password } = req.body;
+
     try {
-        const { email, password } = req.body;
-        const result = await authService.login(email, password);
-        return Responses.successResponse(req, res, result, messages.loginSuccess, 200);
-    } catch (error) {
-        console.error(error)
-
-        let errorMessage = messages.unexpectedError;  
-
-        if (error.message === messages.invalidEmail) {
-            errorMessage = messages.emailRequired;
-        } else if (error.message === messages.passwordRequired) {
-            errorMessage = messages.passwordRequired;
+        // Validate email and password input
+        if (!email || !password) {
+            return Responses.failResponse(req, res, null, messages.emailRequired, 400); // Return error if email or password is missing
         }
 
-        return Responses.errorResponse(req, res, { message: errorMessage });
+        // Call the login service to authenticate the user
+        const result = await authService.login(email, password);
+
+        // If email is not registered, return the specific error
+        if (result.emailNotRegistered) {
+            return Responses.failResponse(req, res, null, messages.emailNotRegistered, 404);
+        }
+
+        // If incorrect password, return the specific error
+        if (result.invalidPassword) {
+            return Responses.failResponse(req, res, null, messages.invalidPassword, 401);
+        }
+
+        // Return success response with user data (excluding password)
+        return Responses.successResponse(req, res, {
+            name: result.name,
+            email: result.email,
+            mobile: result.mobile,
+            address: result.address
+        }, messages.loginSuccess, 200);
+
+    } catch (error) {
+        console.error('Login error:', error);
+
+        // Default error response for login failure
+        return Responses.failResponse(req, res, new Error(messages.GENERAL_ERROR), 500, 'Error logging in');
     }
 };
+
+module.exports = { login };
 
 
 
 const signup = async (req, res) => {
-    const { name, mobile, email, address, password } = req.body;
-
+    const { name, email, phone, password, address, role } = req.body;
+  
     try {
-        // Validate if password is provided
-        if (!password) {
-            return Responses.failResponse(req, res, null, messages.passwordRequired, 400);
+        // Validate input fields
+        if (!name) {
+            return Responses.failResponse(req, res, null, messages.nameisrequired, 400);
+        }
+        if (!email || !validator.isEmail(email)) {
+            return Responses.failResponse(req, res, null, messages.emailRequired, 400);
         }
         if (!address) {
             return Responses.failResponse(req, res, null, messages.addressRequired, 400);
         }
-        if (!name) {
-            return Responses.failResponse(req, res, null, messages.nameisrequired, 400);
+        if (!password || password.length < 8) {
+            return Responses.failResponse(req, res, null, messages.passwordRequired, 400);
         }
-
+  
+        // Validate mobile number (simple check for 10 digits)
+        const mobilePattern = /^[0-9]{10}$/;
+        if (!mobilePattern.test(phone)) {
+            return Responses.failResponse(req, res, null, messages.invalidMobile, 400);
+        }
+  
         // Call the signup service to register the user
-        const result = await authService.signup(name, mobile, email, address, password);
-
-        // If user already exists, return an error response
-        if (result.userAlreadyExists) {
+        const result = await authService.signup(name, email, phone, password, address, role);
+  
+        // Check if user already exists (result should contain a flag or status)
+        if (result.existingUser) {
             return Responses.failResponse(req, res, null, messages.userAlreadyExists, 400);
         }
-
-        // If signup is successful, return success response with user data
-        return Responses.successResponse(req, res, { name, mobile, email, address ,password}, messages.signupSuccess, 201);
-
+  
+        // Return success response with the user data (excluding password)
+        return Responses.successResponse(req, res, {
+            name, email, phone, address, role  // Exclude password for security
+        }, messages.signupSuccess, 201);
     } catch (error) {
         console.error('Error during signup:', error);
-
-        // Return error response if something went wrong
-        return Responses.failResponse(req, res, null, messages.GENERAL_ERROR, 500);
+  
+        // Return generic error message if something went wrong
+        return Responses.errorResponse(req, res, error.message || messages.GENERAL_ERROR, 500);
     }
-};
-
+  };
+  
 
 
 // OTP Generation Logic (Modified)
@@ -72,10 +104,10 @@ const generateOtp = async (req, res) => {
 
         // If email is not registered, return the specific error
         if (result.emailNotRegistered) {
-            return Responses.failResponse(req, res, null, messages.emailnotRegister,500);
+            return Responses.failResponse(req, res, null, messages.emailnotRegister, 500);
         }
 
-        // If max attempts reached, return the specific error
+        // If max OTP requests are reached, return the specific error
         if (result.maxOtpReached) {
             return Responses.failResponse(req, res, null, messages.MAX_ATTEMPTS_REACHED, 429);
         }
@@ -121,17 +153,18 @@ const verifyOtp = async (req, res) => {
         const result = await authService.verifyOTP(email, otp);
 
         // Handle different failure scenarios for OTP verification
-        if (result.OtpExpired) {
-            return Responses.failResponse(req, res, null, messages.otpExpired, 400);
-        }
+        if (result.success === false) {
+            if (result.message === 'OTP has expired. Please request a new one.') {
+                return Responses.failResponse(req, res, null, messages.otpExpired, 400);
+            }
 
-        if (result.invalidOtp) {
-            return Responses.failResponse(req, res, null, messages.invalidOtp, 400);
+            if (result.invalidOtp) {
+                return Responses.failResponse(req, res, null, messages.invalidOtp, 400);
+            }
         }
-
 
         // Success scenario - OTP verified
-        if (result.verified) {
+        if (result.success && result.verified) {
             return Responses.successResponse(req, res, result, messages.otpVerificationSuccess, 200);
         }
 
@@ -145,7 +178,8 @@ const verifyOtp = async (req, res) => {
 };
 
 
-  const resetPassword = async (req, res) => {
+
+const resetPassword = async (req, res) => {
     const { email, otp, password, nwpassword } = req.body;
 
     try {
@@ -160,11 +194,73 @@ const verifyOtp = async (req, res) => {
     }
 };
 
+const sendOtp = async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        // Validate email input
+        if (!email || !email.trim()) {
+            return Responses.failResponse(req, res, null, messages.emailRequired, 400); // Return error if email is missing
+        }
+
+        // Call sendOtp service to generate and send OTP
+        const response = await authService.sendOtp(email);
+
+        // If the OTP sending fails (you can add additional checks in service)
+        if (!response.success) {
+            return Responses.failResponse(req, res, null, messages.failedToSendOtp, 500);
+        }
+
+        // Return success response after OTP is sent successfully
+        return Responses.successResponse(req, res, response, messages.otpSentSuccess, 200);
+
+    } catch (error) {
+        console.error('Error in OTP request:', error);
+
+        // Default error response for OTP request failure
+        return Responses.failResponse(req, res, new Error(messages.GENERAL_ERROR), 500, 'Error sending OTP');
+    }
+};
+
+const verifyOtpForLogin = async (req, res) => {
+    const { email, otp } = req.body;
+
+    try {
+        // Validate email and OTP input
+        if (!email || !email.trim()) {
+            return Responses.failResponse(req, res, null, messages.emailRequired, 400); // Return error if email is missing
+        }
+        if (!otp || !otp.trim()) {
+            return Responses.failResponse(req, res, null, messages.otpRequired, 400); // Return error if OTP is missing
+        }
+
+        // Call verifyOtp service to check if OTP is valid
+        const response = await authService.verifyOtpforLogin(email, otp);
+
+        // If OTP verification fails (could include reasons like expiry or incorrect OTP)
+        if (!response.success) {
+            return Responses.failResponse(req, res, null, response.message, 400);
+        }
+
+        // Return success response after OTP is successfully verified
+        return Responses.successResponse(req, res, response, messages.otpVerifiedSuccess, 200);
+
+    } catch (error) {
+        console.error('Error in OTP verification:', error);
+
+        // Default error response for OTP verification failure
+        return Responses.failResponse(req, res, new Error(messages.GENERAL_ERROR), 500, 'Error verifying OTP');
+    }
+};
+
 
 module.exports = {
     login,
     signup,
     generateOtp,
     verifyOtp,
-    resetPassword
+    resetPassword,
+    sendOtp,
+    verifyOtpForLogin
+
 };

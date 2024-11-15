@@ -56,7 +56,8 @@ const messages = {
     userAlreadyExists: "User already exists.",
     internalError: "An error occurred during signup, please try again later.",
     invalidCredentials: "Invalid credentials, please try again.",
-    nameisrequired:"Name is Required"
+    nameisrequired:"Name is Required",
+    invalidMobile:"Invalid Mobile"
 };
 
 module.exports = messages;

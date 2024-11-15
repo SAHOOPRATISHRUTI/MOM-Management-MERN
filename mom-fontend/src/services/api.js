@@ -69,12 +69,53 @@ const verifyOTP = async (email, otp) => {
   }
 };
 
+// Send OTP
+const sendOtp = async (email) => {
+  try {
+    console.log("Sending OTP request for:", email);
+    const response = await axios.post(`${API_URL}/send-otp`, { email });
+    return response.data;
+  } catch (error) {
+    // Log the error message
+    if (error.response) {
+      console.error('Server Error:', error.response.data.message);
+      throw new Error(error.response.data.message || 'Failed to send OTP');
+    } else if (error.request) {
+      console.error('No response from server:', error.request);
+      throw new Error('No response from server');
+    } else {
+      console.error('Error during request:', error.message);
+      throw new Error('An error occurred during OTP sending');
+    }
+  }
+};
+
+// Verify OTP
+const verifyOtpforSignUp = async (email, otp) => {
+  try {
+    console.log('Sending OTP verification request for login:', email, otp);
+    const response = await axios.post(`${API_URL}/verifyotp`, { email, otp });
+    return response.data;
+  } catch (error) {
+    // Log the error message
+    if (error.response) {
+      console.error('Server Error:', error.response.data.message);
+      throw new Error(error.response.data.message || 'OTP verification failed');
+    } else if (error.request) {
+      console.error('No response from server:', error.request);
+      throw new Error('No response from server');
+    } else {
+      console.error('Error during request:', error.message);
+      throw new Error('An error occurred during OTP verification');
+    }
+  }
+};
 
 // Signup User
-const signupUser = async (name, mobile, email, address ,password) => {
+const signupUser = async (name,  email,phone,password, address,role) => {
   try {
-    console.log("Sending signup request with:", name, mobile, email, address ,password); // Log request
-    const response = await axios.post(`${API_URL}/signup`, { name, mobile, email, address ,password});
+    console.log("Sending signup request with:", name,  email,phone,password, address,role); // Log request
+    const response = await axios.post(`${API_URL}/signup`, { name,  email,phone,password, address,role});
     return response.data;  
   } catch (error) {
     // Log the error message
@@ -91,9 +132,4 @@ const signupUser = async (name, mobile, email, address ,password) => {
   }
 };
 
-
-
-
-
-
-export { loginUser, generateOTP, verifyOTP ,signupUser};
+export { loginUser, generateOTP, verifyOTP, signupUser, sendOtp, verifyOtpforSignUp };

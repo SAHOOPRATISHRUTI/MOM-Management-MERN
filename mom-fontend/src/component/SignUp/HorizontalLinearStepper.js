@@ -12,45 +12,47 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 import HomeIcon from '@mui/icons-material/Home';
 import LockIcon from '@mui/icons-material/Lock';
-import { validateAddress, validateEmail, validateMobile, validateName, validatePassword } from '../../validator/validator';
-import { signupUser } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-
+import CircularProgress from '@mui/material/CircularProgress';
+import { sendOtp, verifyOtpforSignUp, signupUser } from '../../services/api'; // Adjust API service paths
+import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 
 const steps = ['Personal Information', 'Contact Information', 'Create Password'];
 
 export default function HorizontalLinearStepper() {
-
   const [activeStep, setActiveStep] = React.useState(0);
   const [skipped, setSkipped] = React.useState(new Set());
   const navigate = useNavigate();
 
   // Step 1 inputs
   const [name, setName] = React.useState('');
-  const [mobile, setMobile] = React.useState('');
+  const [phone, setPhone] = React.useState('');
 
   // Step 2 inputs
   const [email, setEmail] = React.useState('');
   const [address, setAddress] = React.useState('');
+  const [role, setRole] = React.useState('user'); // Default role is "User"
 
   // Step 3 inputs
   const [password, setPassword] = React.useState('');
 
   // Error states
   const [nameError, setNameError] = React.useState('');
-  const [mobileError, setMobileError] = React.useState('');
+  const [phoneError, setPhoneError] = React.useState('');
   const [emailError, setEmailError] = React.useState('');
   const [addressError, setAddressError] = React.useState('');
   const [passwordError, setPasswordError] = React.useState('');
 
-  const isStepOptional = (step) => {
-    return step === 1;
-  };
+  // OTP states
+  const [otp, setOtp] = React.useState('');
+  const [otpSent, setOtpSent] = React.useState(false);
+  const [otpVerified, setOtpVerified] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [otpSentMessage, setOtpSentMessage] = React.useState(false);
 
-  const isStepSkipped = (step) => {
-    return skipped.has(step);
-  };
+  const isStepOptional = (step) => step === 1;
+  const isStepSkipped = (step) => skipped.has(step);
 
   const handleNext = () => {
     let newSkipped = skipped;
@@ -59,31 +61,30 @@ export default function HorizontalLinearStepper() {
       newSkipped.delete(activeStep);
     }
 
-    // Validate form fields and set errors
     let hasError = false;
     if (activeStep === 0) {
-      if (!validateName(name)) {
+      if (!name) {
         setNameError('Name is required');
         hasError = true;
       } else {
         setNameError('');
       }
-      if (!validateMobile(mobile)) {
-        setMobileError('Mobile number must be 10 digits');
+      if (!phone || phone.length !== 10) {
+        setPhoneError('Mobile number must be 10 digits');
         hasError = true;
       } else {
-        setMobileError('');
+        setPhoneError('');
       }
     }
 
     if (activeStep === 1) {
-      if (!validateEmail(email)) {
+      if (!email || !/\S+@\S+\.\S+/.test(email)) {
         setEmailError('Invalid email address');
         hasError = true;
       } else {
         setEmailError('');
       }
-      if (!validateAddress(address)) {
+      if (!address) {
         setAddressError('Address is required');
         hasError = true;
       } else {
@@ -92,7 +93,7 @@ export default function HorizontalLinearStepper() {
     }
 
     if (activeStep === 2) {
-      if (!validatePassword(password)) {
+      if (!password || password.length < 8) {
         setPasswordError('Password must be at least 8 characters');
         hasError = true;
       } else {
@@ -106,43 +107,66 @@ export default function HorizontalLinearStepper() {
     setSkipped(newSkipped);
   };
 
-  const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+  const handleBack = () => setActiveStep((prevActiveStep) => prevActiveStep - 1);
+
+  const handleOtpChange = (e) => setOtp(e.target.value);
+
+  const handleSendOtp = async () => {
+    setLoading(true);
+
+    try {
+      // Send OTP API call
+      await sendOtp(email);
+      setOtpSent(true);
+      setOtpSentMessage(true);
+      setLoading(false);
+
+      // Clear OTP sent message after 3 seconds
+      setTimeout(() => {
+        setOtpSentMessage(false);
+      }, 3000);
+    } catch (error) {
+      setLoading(false);
+      toast.error('Failed to send OTP');
+    }
   };
 
-  const handleSkip = () => {
-    if (!isStepOptional(activeStep)) {
-      throw new Error("You can't skip a step that isn't optional.");
+  const handleVerifyOtp = async () => {
+    try {
+      const response = await verifyOtpforSignUp(email, otp);
+      if (response.success) {
+        setOtpVerified(true);
+        toast.success('OTP verified successfully');
+      } else {
+        toast.error('Invalid OTP');
+      }
+    } catch (error) {
+      toast.error('OTP verification failed');
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const response = await signupUser(name, email, phone, password, address, role);  // Include role in the signupUser API call
+      toast.success(response.message);
+      navigate('/dashboard');
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+  const handleMobileKeyPress = (e) => {
+    const key = e.key;
+    // Allow only numbers and prevent any other key press
+    if (!/^[0-9]$/.test(key)) {
+      e.preventDefault();
     }
 
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
-    setSkipped((prevSkipped) => {
-      const newSkipped = new Set(prevSkipped.values());
-      newSkipped.add(activeStep);
-      return newSkipped;
-    });
+    // Check if the length of the value exceeds 10 digits
+    if (e.target.value.length >= 10) {
+      e.preventDefault();
+    }
   };
 
-  const handleReset = () => {
-    setActiveStep(0);
-  };
-
-
-  
-    const handleSubmit = async () => {
-      try {
-        const response = await signupUser(name, mobile, email, address, password);
-        console.log('Signup successful:', response);
-        toast.success(response.message)
-        
-       
-        navigate('/dashboard'); 
-      } catch (error) {
-        console.error('Signup failed:', error.message);
-        toast.error( error.message)
-      
-      }
-    };
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -151,9 +175,7 @@ export default function HorizontalLinearStepper() {
           const stepProps = {};
           const labelProps = {};
           if (isStepOptional(index)) {
-            labelProps.optional = (
-              <Typography variant="caption">Optional</Typography>
-            );
+            labelProps.optional = <Typography variant="caption">Optional</Typography>;
           }
           if (isStepSkipped(index)) {
             stepProps.completed = false;
@@ -165,21 +187,18 @@ export default function HorizontalLinearStepper() {
           );
         })}
       </Stepper>
+
       {activeStep === steps.length ? (
         <React.Fragment>
-          <Typography sx={{ mt: 2, mb: 1 }}>
-            All steps completed - you&apos;re finished
-          </Typography>
+          <Typography sx={{ mt: 2, mb: 1 }}>All steps completed - you're finished</Typography>
           <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
             <Box sx={{ flex: '1 1 auto' }} />
-            <Button onClick={handleReset}>Reset</Button>
+            <Button onClick={handleSubmit}>Finish</Button> {/* Finish button triggers submit */}
           </Box>
         </React.Fragment>
       ) : (
         <React.Fragment>
-          <Typography sx={{ mt: 2, mb: 1 }}>
-            {steps[activeStep]}
-          </Typography>
+          <Typography sx={{ mt: 2, mb: 1 }}>{steps[activeStep]}</Typography>
           <Box sx={{ mb: 3 }}>
             {activeStep === 0 && (
               <>
@@ -200,14 +219,19 @@ export default function HorizontalLinearStepper() {
                   }}
                 />
                 <TextField
-                  label="Mobile"
+                  id="mobile"
+                  label="Mobile Number"
+                  type="tel"
+                  name="mobile"
+                  //value={formData.mobile}
+                  onKeyPress={handleMobileKeyPress}  // Apply the key press handler here
+                  //onChange={hand}
+                  inputProps={{ maxLength: 10 }}  // Restrict input length to 10
+                  placeholder="Enter Your Mobile Number*"
+                  error={Boolean(phoneError)} 
+                  helperText={phoneError}  
                   fullWidth
                   variant="outlined"
-                  value={mobile}
-                  onChange={(e) => setMobile(e.target.value)}
-                  sx={{ mt: 2 }}
-                  error={Boolean(mobileError)}
-                  helperText={mobileError}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -215,6 +239,7 @@ export default function HorizontalLinearStepper() {
                       </InputAdornment>
                     ),
                   }}
+                  sx={{ marginBottom: "16px" }}
                 />
               </>
             )}
@@ -226,7 +251,6 @@ export default function HorizontalLinearStepper() {
                   variant="outlined"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  sx={{ mb: 2 }}
                   error={Boolean(emailError)}
                   helperText={emailError}
                   InputProps={{
@@ -235,15 +259,53 @@ export default function HorizontalLinearStepper() {
                         <EmailIcon />
                       </InputAdornment>
                     ),
+                    endAdornment: email && !otpVerified && (
+                      <InputAdornment position="end">
+                        <Button
+                          variant="outlined"
+                          onClick={handleSendOtp}
+                          size="small"
+                          style={{ padding: '2px 6px', fontSize: '10px' }}
+                        >
+                          {loading ? <CircularProgress size={20} /> : 'Send OTP'}
+                        </Button>
+                      </InputAdornment>
+                    ),
                   }}
                 />
+                {otpSentMessage && !otpVerified && (
+                  <Typography variant="body2" color="success.main" mt={2}>
+                    OTP Sent Successfully to your email!
+                  </Typography>
+                )}
+                {otpSent && !otpVerified && (
+                  <TextField
+                    label="Enter OTP"
+                    type="text"
+                    value={otp}
+                    onChange={handleOtpChange}
+                    fullWidth
+                    variant="outlined"
+                    sx={{ mt: 2 }}
+                  />
+                )}
+                {otpSent && !otpVerified && (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleVerifyOtp}
+                    sx={{ mt: 2 }}
+                  >
+                    Verify OTP
+                  </Button>
+                )}
                 <TextField
                   label="Address"
                   fullWidth
                   variant="outlined"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  sx={{ mb: 2 }}
+                  sx={{ mt: 2 }}
                   error={Boolean(addressError)}
                   helperText={addressError}
                   InputProps={{
@@ -257,44 +319,38 @@ export default function HorizontalLinearStepper() {
               </>
             )}
             {activeStep === 2 && (
-              <TextField
-                label="Password"
-                type="password"
-                fullWidth
-                variant="outlined"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                sx={{ mb: 2 }}
-                error={Boolean(passwordError)}
-                helperText={passwordError}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LockIcon />
-                    </InputAdornment>
-                  ),
-                }}
-              />
+              <>
+                <TextField
+                  label="Password"
+                  type="password"
+                  fullWidth
+                  variant="outlined"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  error={Boolean(passwordError)}
+                  helperText={passwordError}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockIcon />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </>
             )}
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
             <Button
               color="inherit"
-              disabled={activeStep === 0}
               onClick={handleBack}
               sx={{ mr: 1 }}
+              disabled={activeStep === 0}
             >
               Back
             </Button>
             <Box sx={{ flex: '1 1 auto' }} />
-            {isStepOptional(activeStep) && (
-              <Button color="inherit" onClick={handleSkip} sx={{ mr: 1 }}>
-                Skip
-              </Button>
-            )}
-            <Button onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}>
-              {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
-            </Button>
+            <Button onClick={handleNext}>{activeStep === steps.length - 1 ? 'Finish' : 'Next'}</Button>
           </Box>
         </React.Fragment>
       )}

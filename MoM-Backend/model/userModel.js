@@ -1,44 +1,71 @@
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const validator = require('validator');
 
-
-const userSchema = new Schema({
+// Employee schema
+const employeeSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
-    trim: true, 
-  },
-  mobile: {
-    type: Number,
-    required: true, 
-    unique: true, 
-    trim: true, 
+    required: [true, 'Name is required'],
+    trim: true,
+    index: true
   },
   email: {
     type: String,
-    required: true,
-    unique: true, 
-    lowercase: true, 
+    required: [true, 'Email is required'],
+    unique: true,
+    validate: {
+      validator: validator.isEmail,
+      message: '{VALUE} is not a valid email. Please enter a valid email'
+    },
+    index: true
   },
-  address: {
+  phone: {
     type: String,
-    required: true, 
+    required: [true, 'Phone number is required'],
+    unique: true
   },
   password: {
     type: String,
-    required: true, 
+    required: [true, 'Password is required']
   },
-  newPassword: {
-    type: String, 
-    required: false, 
+  address: {
+    type: String,
+    default: null
   },
   role: {
     type: String,
-    default: 'user', 
+    enum: ['user', 'admin'],
+    default: 'user'
   },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  verifiedAt: {
+    type: Date,
+    default: null
+  },
+  otp: {
+    type: String,
+    default: null
+  },
+  otpAttempts: {
+    type: Number,
+    default: 0
+  },
+  otpExpiry: {
+    type: Date,
+    default: null
+  }
 }, {
-  timestamps: true, 
+  timestamps: true 
 });
 
+// Model
+const Employee = mongoose.model('Employee', employeeSchema);
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = Employee;
