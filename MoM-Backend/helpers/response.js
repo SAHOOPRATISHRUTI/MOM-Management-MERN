@@ -9,28 +9,32 @@ const successResponse = (req, res, data, message, statusCode = 200) => {
 };
 
 const failResponse = (req, res, data, message, statusCode = 400) => {
+  // Ensure statusCode is numeric and valid
+  if (!Number.isInteger(statusCode) || statusCode < 100 || statusCode > 599) {
+      statusCode = 400;  // default to 400 if an invalid status code is passed
+  }
+
   return res.status(statusCode).send({
-    error: true,  // Marked as error
-    success: false,
-    message: message,
-    data
+      error: true,
+      success: false,
+      message: message,
+      data
   });
 };
 
 
 
-const errorResponse = (req, res, errorDesc, errorKey = 500) => {
-  console.log(">>>>>>>>>>>>>   ERROR\n", errorKey);
+const errorResponse = (req, res, message, errorKey = 500) => {
+
   
-  // Check if errorDesc is an Error object
-  const message = errorDesc instanceof Error ? errorDesc.message : errorDesc || 'An unknown error occurred';
   return res.status(errorKey).send({
     error: true,
     success: false,
-    message: message,
+    message: message, 
     data: null
   });
 };
+
 
 module.exports = {
   errorResponse,

@@ -4,9 +4,9 @@ export const validateEmail = (email) => {
   return emailPattern.test(email);
 };
 
-// Password validation function (e.g., at least 8 characters)
+
 export const validatePassword = (password) => {
-  const minLength = 8;
+  const minLength = 6;
   return password.length >= minLength;
 };
 

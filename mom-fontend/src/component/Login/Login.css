@@ -4,4 +4,15 @@
     padding: 20px;
     border-radius: 10px;
   }
-  
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 0px !important; 
+}
+a {
+  color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
+  text-decoration: none !important;
+}
+
+
+

@@ -7,7 +7,7 @@ const otpSchema = new mongoose.Schema({
     },
     otp: {
         type: String,
-        required: true
+      
     },
     isVerified: {
         type: Boolean,
@@ -16,6 +16,10 @@ const otpSchema = new mongoose.Schema({
     verifiedAt: { 
         type: Date 
     }, 
+    otpExpiry: { 
+        type: Date,  // Field to store the OTP expiry time
+       
+    },
     createdAt: { 
         type: Date, 
         default: Date.now 

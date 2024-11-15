@@ -3,29 +3,25 @@ const Responses = require('../helpers/response');
 const messages = require('../constants/constMessage');
 const validator = require('validator')
 
-
-
-
 const login = async (req, res) => {
     const { email, password } = req.body;
 
     try {
+        const result = await authService.login(email, password);
+
         // Validate email and password input
         if (!email || !password) {
-            return Responses.failResponse(req, res, null, messages.emailRequired, 400); // Return error if email or password is missing
+            return Responses.failResponse(req, res, null, messages.emailpasswordRequired, 400); 
         }
-
-        // Call the login service to authenticate the user
-        const result = await authService.login(email, password);
 
         // If email is not registered, return the specific error
         if (result.emailNotRegistered) {
-            return Responses.failResponse(req, res, null, messages.emailNotRegistered, 404);
+            return Responses.failResponse(req, res, null, messages.emailnotRegister, 400);
         }
 
         // If incorrect password, return the specific error
         if (result.invalidPassword) {
-            return Responses.failResponse(req, res, null, messages.invalidPassword, 401);
+            return Responses.failResponse(req, res, null, messages.incorrectPassword, 401);
         }
 
         // Return success response with user data (excluding password)
@@ -34,23 +30,24 @@ const login = async (req, res) => {
             email: result.email,
             mobile: result.mobile,
             address: result.address
-        }, messages.loginSuccess, 200);
+        }, 'Login successful', 200);
 
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('Login error:', error); // Log the error to the console for debugging
+
+        // Return a more detailed error message
+        const errorMessage = error.message || 'An unknown error occurred during login';
 
         // Default error response for login failure
-        return Responses.failResponse(req, res, new Error(messages.GENERAL_ERROR), 500, 'Error logging in');
+        return Responses.errorResponse(req, res, errorMessage, 500);
     }
 };
-
-module.exports = { login };
 
 
 
 const signup = async (req, res) => {
     const { name, email, phone, password, address, role } = req.body;
-  
+
     try {
         // Validate input fields
         if (!name) {
@@ -62,36 +59,36 @@ const signup = async (req, res) => {
         if (!address) {
             return Responses.failResponse(req, res, null, messages.addressRequired, 400);
         }
-        if (!password || password.length < 8) {
+        if (!password || password.length < 6) {
             return Responses.failResponse(req, res, null, messages.passwordRequired, 400);
         }
-  
+
         // Validate mobile number (simple check for 10 digits)
         const mobilePattern = /^[0-9]{10}$/;
         if (!mobilePattern.test(phone)) {
             return Responses.failResponse(req, res, null, messages.invalidMobile, 400);
         }
-  
+
         // Call the signup service to register the user
         const result = await authService.signup(name, email, phone, password, address, role);
-  
+
         // Check if user already exists (result should contain a flag or status)
         if (result.existingUser) {
             return Responses.failResponse(req, res, null, messages.userAlreadyExists, 400);
         }
-  
+
         // Return success response with the user data (excluding password)
         return Responses.successResponse(req, res, {
             name, email, phone, address, role  // Exclude password for security
-        }, messages.signupSuccess, 201);
+        }, messages.signupSuccess, 200);
     } catch (error) {
         console.error('Error during signup:', error);
-  
+
         // Return generic error message if something went wrong
         return Responses.errorResponse(req, res, error.message || messages.GENERAL_ERROR, 500);
     }
-  };
-  
+};
+
 
 
 // OTP Generation Logic (Modified)
@@ -104,7 +101,7 @@ const generateOtp = async (req, res) => {
 
         // If email is not registered, return the specific error
         if (result.emailNotRegistered) {
-            return Responses.failResponse(req, res, null, messages.emailnotRegister, 500);
+            return Responses.failResponse(req, res, null, messages.emailnotRegister, 400);
         }
 
         // If max OTP requests are reached, return the specific error
@@ -119,7 +116,7 @@ const generateOtp = async (req, res) => {
         console.error('Error generating OTP:', error);
 
         // Default error response for OTP generation failure
-        return Responses.failResponse(req, res, new Error(messages.OTP_ERROR), 500, 'Error generating OTP');
+        return Responses.errorResponse(req, res, new Error(messages.OTP_ERROR), 500, 'Error generating OTP');
     }
 };
 
@@ -204,23 +201,28 @@ const sendOtp = async (req, res) => {
         }
 
         // Call sendOtp service to generate and send OTP
-        const response = await authService.sendOtp(email);
+        const result = await authService.sendOtp(email);
 
-        // If the OTP sending fails (you can add additional checks in service)
-        if (!response.success) {
-            return Responses.failResponse(req, res, null, messages.failedToSendOtp, 500);
+        // Check if the email is already registered
+        if (!result.success) {
+            if (result.message === 'This email ID is already registered') {
+                return Responses.failResponse(req, res, null, messages.emailAlreadyRegistered, 400); // Email is already registered
+            } else {
+                return Responses.failResponse(req, res, null, result.message, 400); // Handle other errors (e.g., invalid email format)
+            }
         }
 
         // Return success response after OTP is sent successfully
-        return Responses.successResponse(req, res, response, messages.otpSentSuccess, 200);
+        return Responses.successResponse(req, res, result, messages.otpSentSuccess, 200);
 
     } catch (error) {
         console.error('Error in OTP request:', error);
 
         // Default error response for OTP request failure
-        return Responses.failResponse(req, res, new Error(messages.GENERAL_ERROR), 500, 'Error sending OTP');
+        return Responses.errorResponse(req, res, new Error(messages.GENERAL_ERROR), 500, 'Error sending OTP');
     }
 };
+
 
 const verifyOtpForLogin = async (req, res) => {
     const { email, otp } = req.body;
@@ -234,12 +236,18 @@ const verifyOtpForLogin = async (req, res) => {
             return Responses.failResponse(req, res, null, messages.otpRequired, 400); // Return error if OTP is missing
         }
 
-        // Call verifyOtp service to check if OTP is valid
+        // Validate email format using regex
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email)) {
+            return Responses.failResponse(req, res, null, messages.invalidEmailFormat, 400); // Return error if email format is invalid
+        }
+
+        // Call the verifyOtp service to check if OTP is valid
         const response = await authService.verifyOtpforLogin(email, otp);
 
         // If OTP verification fails (could include reasons like expiry or incorrect OTP)
         if (!response.success) {
-            return Responses.failResponse(req, res, null, response.message, 400);
+            return Responses.failResponse(req, res, null, response.message || messages.invalidOtp, 400);
         }
 
         // Return success response after OTP is successfully verified
@@ -249,9 +257,10 @@ const verifyOtpForLogin = async (req, res) => {
         console.error('Error in OTP verification:', error);
 
         // Default error response for OTP verification failure
-        return Responses.failResponse(req, res, new Error(messages.GENERAL_ERROR), 500, 'Error verifying OTP');
+        return Responses.errorResponse(req, res, new Error(messages.GENERAL_ERROR), 500, 'Error verifying OTP');
     }
 };
+
 
 
 module.exports = {

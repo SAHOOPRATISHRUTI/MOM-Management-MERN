@@ -1,12 +1,12 @@
 const OTP = require('../model/otpModel')
 const { sendOtpEmail } = require('../eMailsetUp/mailSetUp')
-const OTP_EXPIRATION_TIME = process.env.OTP_EXPIRATION_TIME || 5 * 60 * 1000; 
-const OTP_COOLDOWN_PERIOD = process.env.OTP_COOLDOWN_PERIOD || 15 * 60 * 1000; 
-const MAX_REQUESTS = process.env.MAX_REQUESTS || 3; 
+const OTP_EXPIRATION_TIME = 5 * 60 * 1000;  
+const MAX_REQUESTS = 3; 
+
 const bcrypt = require('bcryptjs');  
 const Users = require('../model/userModel'); 
 const validator = require('validator');
-const crypto = require('crypto');
+
 
 
 
@@ -108,42 +108,45 @@ const updatePassword = async (email, newPassword) => {
 const generateAndSaveOtp = async (email) => {
     // Check if the email exists in the users collection
     const user = await Users.findOne({ email });
-    
+
     if (!user) {
         // If email doesn't exist in the users' database, return error
         return { emailNotRegistered: true };
     }
 
-    const now = Date.now();
-    let otpRecord = await OTP.findOne({ email });
+    const now = Date.now();  // Get the current timestamp
+    let otpRecord = await Users.findOne({ email });  // Fetch OTP record from the database
 
     // Generate new OTP
     const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
     if (otpRecord) {
+        // Ensure expiresAt is a valid Date object or convert it to a timestamp
+        const expiresAt = otpRecord.expiresAt ? otpRecord.expiresAt.getTime() : null;
+
         // Check if OTP expired
-        const isExpired = now - otpRecord.expiresAt > 0; // Check if OTP has expired based on expiresAt
+        const isExpired = expiresAt && now > expiresAt;  // Check expiration if expiresAt exists
 
         if (isExpired) {
             // OTP expired, reset attempts and set new OTP
             otpRecord.otp = newOtp;
             otpRecord.createdAt = now;  // Reset createdAt
-            otpRecord.expiresAt = new Date(now + OTP_EXPIRATION_TIME); // Reset expiresAt
-            otpRecord.attempts = 1; // Reset attempts
-        } else if (otpRecord.attempts >= MAX_REQUESTS) {
+            otpRecord.expiresAt = new Date(now + OTP_EXPIRATION_TIME);  // Reset expiresAt
+            otpRecord.otpAttempts = 1;  // Reset OTP attempts
+        } else if (otpRecord.otpAttempts >= MAX_REQUESTS) {
             // Max OTP requests reached
             return { maxOtpReached: true };
         } else {
             // Increment attempts if OTP not expired and not verified
             otpRecord.otp = newOtp;
-            otpRecord.attempts += 1;
+            otpRecord.otpAttempts += 1;
         }
     } else {
         // If no OTP record found, create a new one
         otpRecord = new OTP({
             email,
             otp: newOtp,
-            attempts: 1,
+            otpAttempts: 1,
             createdAt: now,
             expiresAt: new Date(now + OTP_EXPIRATION_TIME),  // Set expiry time
         });
@@ -153,12 +156,12 @@ const generateAndSaveOtp = async (email) => {
     await otpRecord.save();
 
     // Send OTP via email
-    const emailSubject = 'OTP to Verify Your Email to Schedule a Demo with MinutesVault';
-    const mailData = `<p>Thank you for your interest. Your OTP is <strong>${otpRecord.otp}</strong>. It will expire in 10 minutes.</p>`;
+    const emailSubject = 'OTP to Verify Your Email';
+    const mailData = `<p>Your OTP is <strong>${otpRecord.otp}</strong>. It will expire in 10 minutes.</p>`;
     await sendOtpEmail(email, emailSubject, mailData);
 
     // Return OTP details
-    return { otp: otpRecord.otp, attempts: otpRecord.attempts, otpSent: true };
+    return { otp: otpRecord.otp, otpAttempts: otpRecord.otpAttempts, otpSent: true };
 };
 
 
@@ -169,30 +172,50 @@ const verifyOTP = async (email, otp) => {
             return { success: false, message: 'Email and OTP are required' };
         }
 
-        // Find the OTP record for the email
-        const otpRecord = await OTP.findOne({ email });
+        // Find the OTP record for the email using the Users model
+        const otpRecord = await Users.findOne({ email });
         if (!otpRecord) {
             return { success: false, message: 'No OTP record found for this email' };
         }
 
         const currentTime = Date.now();
 
-        // Check if OTP has expired
-        if (currentTime - otpRecord.expiresAt > 0) {  // Using expiresAt for expiry check
-            await OTP.deleteOne({ email });
+        // Ensure expiresAt is a valid Date object or convert it to a timestamp
+        const expiresAt = otpRecord.expiresAt ? otpRecord.expiresAt.getTime() : null;
+
+        // Check if OTP has expired using expiresAt
+        if (expiresAt && currentTime > expiresAt) {  // Ensure expiresAt exists before checking
+            await OTP.deleteOne({ email });  // Delete expired OTP record
             return { success: false, message: 'OTP has expired. Please request a new one.' };
+        }
+
+        // Check if OTP has exceeded maximum attempts (e.g., 3 attempts)
+        if (otpRecord.otpAttempts >= 3) {
+            // Reset OTP after 30 minutes (1800000 ms)
+            const resetTime = otpRecord.otpAttemptResetTime ? otpRecord.otpAttemptResetTime.getTime() : null;
+            
+            // If 30 minutes have passed, reset OTP attempts and allow another OTP verification
+            if (resetTime && currentTime - resetTime > 1800000) {  // 30 minutes in ms
+                otpRecord.otpAttempts = 0;  // Reset OTP attempts
+                otpRecord.otpAttemptResetTime = currentTime;  // Set reset time
+                await otpRecord.save();
+            } else {
+                return { success: false, message: 'Maximum OTP attempts reached. Please try again after 30 minutes.' };
+            }
         }
 
         // Check if OTP matches
         if (otpRecord.otp !== otp) {
-            otpRecord.attempts += 1;
-            await otpRecord.save();
+            otpRecord.otpAttempts += 1;  // Increment OTP attempts
+            otpRecord.otpAttemptResetTime = currentTime;  // Update reset time when a wrong OTP is entered
+            await otpRecord.save();  // Save updated attempts count
             return { success: false, invalidOtp: true, message: 'Invalid OTP' };
         }
 
-        // OTP is valid
+        // OTP is valid, update verification status
         otpRecord.isVerified = true;
         otpRecord.verifiedAt = currentTime;
+        otpRecord.otpAttempts = 0;  // Reset OTP attempts after successful verification
         await otpRecord.save();
 
         return { success: true, verified: true, message: 'OTP verified successfully' };
@@ -201,7 +224,6 @@ const verifyOTP = async (email, otp) => {
         return { success: false, message: error.message || 'Internal server error' };
     }
 };
-
 
 
 
@@ -249,98 +271,117 @@ const resetPassword = async (email, otp, password, nwpassword) => {
 
 const sendOtp = async (email) => {
     try {
-        // Generate a random 6-digit OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        // Validate email format using regular expression
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email)) {
+            return { success: false, message: 'Invalid email format' }; // Invalid email format
+        }
 
-        // Get the current date and time for OTP expiry (10 minutes from now)
-        const otpExpiry = new Date();
-        otpExpiry.setMinutes(otpExpiry.getMinutes() + 10);  // Expiry in 10 minutes
+        // Check if the email is already registered in the Users collection
+        const user = await Users.findOne({ email });
+        if (user) {
+            return { success: false, message: 'This email ID is already registered' }; // Email is already registered
+        }
 
-        // Find if an OTP record already exists for the given email
-        let otpRecord = await OTP.findOne({ email });
+        // Check if OTP record already exists for the given email
+        const otpRecord = await OTP.findOne({ email });
 
         if (otpRecord) {
-            // If OTP exists, reset OTP attempts and update expiry time
-            otpRecord.otp = otp;
-            otpRecord.otpExpiry = otpExpiry;
-            otpRecord.attempts += 1; // Reset OTP attempts
+            // If an OTP record exists, check if OTP has expired
+            const currentTime = Date.now();
+            if (otpRecord.otpExpiry < currentTime) {
+                // OTP expired, reset it and generate a new one
+                const otp = Math.floor(100000 + Math.random() * 900000).toString();
+                const otpExpiry = new Date();
+                otpExpiry.setMinutes(otpExpiry.getMinutes() + 1);  // Set new expiry time
+
+                otpRecord.otp = otp;
+                otpRecord.otpExpiry = otpExpiry;
+                otpRecord.attempts = 0;  // Reset attempts
+                await otpRecord.save();  // Save updated OTP record
+
+                // Send new OTP via email
+                const emailSubject = 'Your OTP Code';
+                const mailData = `<p>Your OTP code is <strong>${otp}</strong>. It will expire in 10 minutes.</p>`;
+                await sendOtpEmail(email, emailSubject, mailData);
+
+                return { success: true, message: 'OTP has expired. A new OTP has been sent to your email' };
+            } else {
+                return { success: false, message: 'An OTP has already been sent. Please wait for it to expire' };
+            }
         } else {
             // If no OTP record exists, create a new one
-            otpRecord = new OTP({
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            const otpExpiry = new Date();
+            otpExpiry.setMinutes(otpExpiry.getMinutes() + 1);  // Set expiry in 10 minutes
+
+            const newOtpRecord = new OTP({
                 email,
                 otp,
                 otpExpiry,
                 attempts: 0,  // Start with 0 OTP attempts
             });
+
+            // Save the new OTP record
+            await newOtpRecord.save();
+
+            // Send OTP via email
+            const emailSubject = 'Your OTP Code';
+            const mailData = `<p>Your OTP code is <strong>${otp}</strong>. It will expire in 10 minutes.</p>`;
+            await sendOtpEmail(email, emailSubject, mailData);
+
+            return { success: true, message: 'OTP sent successfully' };
         }
-
-        // Save or update the OTP record in the OTP schema
-        await otpRecord.save();
-
-        // Send OTP via email
-        const emailSubject = 'Your OTP Code';
-        const mailData = `<p>Your OTP code is <strong>${otp}</strong>. It will expire in 10 minutes.</p>`;
-        
-        // Use your existing sendOtpEmail function to send the OTP email
-        await sendOtpEmail(email, emailSubject, mailData);
-
-        return { success: true, message: 'OTP sent successfully' };
     } catch (error) {
         console.error('Error sending OTP:', error);
         return { success: false, message: error.message || 'Failed to send OTP' };
     }
 };
 
-const verifyOtpforLogin = async (email, otpInput) => {
+
+const verifyOtpforLogin = async (email, otp) => {
     try {
-        // Find the OTP record for the given email
+        if (!email || !otp) {
+            return { success: false, message: 'Email and OTP are required' };
+        }
+
+        // Find the OTP record for the email
         const otpRecord = await OTP.findOne({ email });
-
         if (!otpRecord) {
-            // If no OTP record found for the email
-            throw new Error('OTP record not found for this email');
+            return { success: false, message: 'No OTP record found for this email' };
         }
 
-        // Check if the OTP has expired
-        const currentTime = new Date();
-        if (currentTime > otpRecord.otpExpiry) {
-            throw new Error('OTP has expired');
+        // Check if OTP and otpExpiry are set in the record
+        if (!otpRecord.otp || !otpRecord.otpExpiry) {
+            return { success: false, message: 'OTP or OTP expiry is missing in the record' };
         }
 
-        // Check if the entered OTP matches the stored OTP
-        if (otpRecord.otp !== otpInput) {
-            // If OTP doesn't match, increment the attempt count
-            otpRecord.attempts += 1;
-            await otpRecord.save();
-
-            // If attempts exceed limit (e.g., 3 attempts), lock the OTP for this email
-            if (otpRecord.attempts >= 3) {
-                throw new Error('Too many incorrect attempts. Please request a new OTP.');
-            }
-
-            throw new Error('Invalid OTP');
+        // Check if OTP has expired
+        const currentTime = Date.now();
+        if (otpRecord.otpExpiry < currentTime) {
+            return { success: false, message: 'OTP has expired' };
         }
 
-        // If OTP is valid, reset OTP attempts and mark the user as verified
-        otpRecord.attempts = 0;  // Reset attempts after successful OTP
-        otpRecord.isVerified = true;  // Mark the OTP record as verified
-        await otpRecord.save();
-
-        // Optionally, update user verification status here (if you have a User schema)
-        const Otp = await OTP.findOne({ email });
-        if (Otp) {
-            Otp.isVerified = true; // Optionally mark user as verified in the User schema
-            await Otp.save();
+        // Compare OTP from request with stored OTP
+        if (otpRecord.otp !== otp) {
+            otpRecord.attempts += 1;  // Increment OTP attempts on failure
+            await otpRecord.save();    // Save the updated attempts count
+            return { success: false, invalidOtp: true, message: 'Invalid OTP' };
         }
 
-        return { success: true, message: 'OTP verified successfully' };
+        // OTP is valid, update verification status
+        otpRecord.isVerified = true;
+        otpRecord.verifiedAt = currentTime;
+        otpRecord.otp = null;  // Clear the OTP after successful verification
+        otpRecord.otpExpiry = null;  // Clear the OTP expiry after successful verification
+        await otpRecord.save();  // Save the updated OTP record
 
+        return { success: true, verified: true, message: 'OTP verified successfully' };
     } catch (error) {
-        console.error('Error verifying OTP:', error);
-        return { success: false, message: error.message || 'Failed to verify OTP' };
+        console.error('Error during OTP verification:', error);
+        return { success: false, message: error.message || 'Internal server error' };
     }
 };
-
 
 module.exports = {
     login,

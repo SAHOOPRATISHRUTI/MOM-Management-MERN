@@ -57,7 +57,9 @@ const messages = {
     internalError: "An error occurred during signup, please try again later.",
     invalidCredentials: "Invalid credentials, please try again.",
     nameisrequired:"Name is Required",
-    invalidMobile:"Invalid Mobile"
+    invalidMobile:"Invalid Mobile",
+    emailpasswordRequired:'Email and password are required',
+    emailAlreadyRegistered:"This email id is already register Please enter a new email id"
 };
 
 module.exports = messages;

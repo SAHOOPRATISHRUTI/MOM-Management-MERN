@@ -15,8 +15,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import CircularProgress from '@mui/material/CircularProgress';
-import { sendOtp, verifyOtpforSignUp, signupUser } from '../../services/api'; // Adjust API service paths
-import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { sendOtp, verifyOtpforSignUp, signupUser } from '../../services/api';
 
 const steps = ['Personal Information', 'Contact Information', 'Create Password'];
 
@@ -32,7 +31,7 @@ export default function HorizontalLinearStepper() {
   // Step 2 inputs
   const [email, setEmail] = React.useState('');
   const [address, setAddress] = React.useState('');
-  const [role, setRole] = React.useState('user'); // Default role is "User"
+  const [role, setRole] = React.useState('user');
 
   // Step 3 inputs
   const [password, setPassword] = React.useState('');
@@ -115,19 +114,17 @@ export default function HorizontalLinearStepper() {
     setLoading(true);
 
     try {
-      // Send OTP API call
       await sendOtp(email);
       setOtpSent(true);
       setOtpSentMessage(true);
       setLoading(false);
 
-      // Clear OTP sent message after 3 seconds
       setTimeout(() => {
         setOtpSentMessage(false);
       }, 3000);
     } catch (error) {
       setLoading(false);
-      toast.error('Failed to send OTP');
+      toast.error(error.message);
     }
   };
 
@@ -136,37 +133,26 @@ export default function HorizontalLinearStepper() {
       const response = await verifyOtpforSignUp(email, otp);
       if (response.success) {
         setOtpVerified(true);
-        toast.success('OTP verified successfully');
+        toast.success(response.message);
       } else {
-        toast.error('Invalid OTP');
+        toast.error(response.message);
       }
     } catch (error) {
-      toast.error('OTP verification failed');
+      toast.error(error.message);
     }
   };
 
   const handleSubmit = async () => {
     try {
-      const response = await signupUser(name, email, phone, password, address, role);  // Include role in the signupUser API call
+      const response = await signupUser(name, email, phone, password, address, role);
       toast.success(response.message);
-      navigate('/dashboard');
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 3000);
     } catch (error) {
       toast.error(error.message);
     }
   };
-  const handleMobileKeyPress = (e) => {
-    const key = e.key;
-    // Allow only numbers and prevent any other key press
-    if (!/^[0-9]$/.test(key)) {
-      e.preventDefault();
-    }
-
-    // Check if the length of the value exceeds 10 digits
-    if (e.target.value.length >= 10) {
-      e.preventDefault();
-    }
-  };
-
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -193,7 +179,7 @@ export default function HorizontalLinearStepper() {
           <Typography sx={{ mt: 2, mb: 1 }}>All steps completed - you're finished</Typography>
           <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
             <Box sx={{ flex: '1 1 auto' }} />
-            <Button onClick={handleSubmit}>Finish</Button> {/* Finish button triggers submit */}
+            <Button onClick={handleSubmit}>Finish</Button>
           </Box>
         </React.Fragment>
       ) : (
@@ -219,19 +205,14 @@ export default function HorizontalLinearStepper() {
                   }}
                 />
                 <TextField
-                  id="mobile"
-                  label="Mobile Number"
-                  type="tel"
-                  name="mobile"
-                  //value={formData.mobile}
-                  onKeyPress={handleMobileKeyPress}  // Apply the key press handler here
-                  //onChange={hand}
-                  inputProps={{ maxLength: 10 }}  // Restrict input length to 10
-                  placeholder="Enter Your Mobile Number*"
-                  error={Boolean(phoneError)} 
-                  helperText={phoneError}  
+                  label="Mobile"
                   fullWidth
                   variant="outlined"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  sx={{ mt: 2 }}
+                  error={Boolean(phoneError)}
+                  helperText={phoneError}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -239,7 +220,6 @@ export default function HorizontalLinearStepper() {
                       </InputAdornment>
                     ),
                   }}
-                  sx={{ marginBottom: "16px" }}
                 />
               </>
             )}
@@ -259,7 +239,7 @@ export default function HorizontalLinearStepper() {
                         <EmailIcon />
                       </InputAdornment>
                     ),
-                    endAdornment: email && !otpVerified && (
+                    endAdornment: email && !otpVerified && /[a-z0-9]+@[a-z]+\.[a-z]{2,3}/.test(email) && (
                       <InputAdornment position="end">
                         <Button
                           variant="outlined"
@@ -287,17 +267,21 @@ export default function HorizontalLinearStepper() {
                     fullWidth
                     variant="outlined"
                     sx={{ mt: 2 }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <Button
+                            variant="outlined"
+                            onClick={handleVerifyOtp}
+                            size="small"
+                            style={{ padding: '2px 6px', fontSize: '10px' }}
+                          >
+                            {loading ? <CircularProgress size={20} /> : 'Verify OTP'}
+                          </Button>
+                        </InputAdornment>
+                      ),
+                    }}
                   />
-                )}
-                {otpSent && !otpVerified && (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleVerifyOtp}
-                    sx={{ mt: 2 }}
-                  >
-                    Verify OTP
-                  </Button>
                 )}
                 <TextField
                   label="Address"
@@ -322,13 +306,14 @@ export default function HorizontalLinearStepper() {
               <>
                 <TextField
                   label="Password"
-                  type="password"
                   fullWidth
                   variant="outlined"
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   error={Boolean(passwordError)}
                   helperText={passwordError}
+                  sx={{ mt: 2 }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -343,14 +328,16 @@ export default function HorizontalLinearStepper() {
           <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
             <Button
               color="inherit"
+              disabled={activeStep === 0}
               onClick={handleBack}
               sx={{ mr: 1 }}
-              disabled={activeStep === 0}
             >
               Back
             </Button>
             <Box sx={{ flex: '1 1 auto' }} />
-            <Button onClick={handleNext}>{activeStep === steps.length - 1 ? 'Finish' : 'Next'}</Button>
+            <Button onClick={handleNext}>
+              {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
+            </Button>
           </Box>
         </React.Fragment>
       )}

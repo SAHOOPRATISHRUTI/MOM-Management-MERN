@@ -5,7 +5,7 @@ const API_URL = 'http://localhost:5000/api/user';
 // Login User
 const loginUser = async (email, password) => {
   try {
-    console.log("Sending login request with:", email, password); // Log request
+    console.log("Sending login request with:", email, password); 
     const response = await axios.post(`${API_URL}/login`, { email, password });
     return response.data;
   } catch (error) {
