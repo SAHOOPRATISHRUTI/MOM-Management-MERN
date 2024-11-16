@@ -147,7 +147,7 @@ export default function HorizontalLinearStepper() {
       const response = await signupUser(name, email, phone, password, address, role);
       toast.success(response.message);
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/');
       }, 3000);
     } catch (error) {
       toast.error(error.message);
@@ -245,7 +245,7 @@ export default function HorizontalLinearStepper() {
                           variant="outlined"
                           onClick={handleSendOtp}
                           size="small"
-                          style={{ padding: '2px 6px', fontSize: '10px' }}
+                          style={{ padding: '2px 6px' }}
                         >
                           {loading ? <CircularProgress size={20} /> : 'Send OTP'}
                         </Button>

@@ -59,8 +59,9 @@ const employeeSchema = new mongoose.Schema({
   },
   otpExpiry: {
     type: Date,
-    default: null
-  }
+    // required: true
+}
+
 }, {
   timestamps: true 
 });

@@ -2,17 +2,23 @@ import React, { useState } from 'react';
 import './ForgotPassword.css'; // Create and style this CSS file as needed
 import { Container, Grid, Typography, Box, TextField, Button, Link } from '@mui/material';
 import { resetPassword } from '../../services/api'; // Import the API method
+import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 function ForgotPassword() {
-  const [otp, setOtp] = useState(new Array(6).fill(''));
+  const location = useLocation();
+  const [Otp, setOtp] = useState(new Array(6).fill(''));
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  const { email } = location.state || {}; 
+  const navigate = useNavigate();
+
   const handleOtpChange = (index, value) => {
-    if (value.length > 1) return; // Prevent more than one digit per box
-    const newOtp = [...otp];
+    if (value.length > 1) return; 
+    const newOtp = [...Otp];
     newOtp[index] = value;
     setOtp(newOtp);
 
@@ -23,19 +29,24 @@ function ForgotPassword() {
   };
 
   const handleOtpVerify = async (e) => {
-    e.preventDefault();
-    const otpValue = otp.join('');
-    
-    if (!otpValue || password !== confirmPassword) {
+    e.preventDefault(); // Prevent default form submission
+
+    const otp = Otp.join('');
+
+    // Check if OTP, password and confirmPassword are valid
+    if (!otp || password !== confirmPassword) {
       setError("OTP or passwords do not match.");
       return;
     }
 
     try {
-      // Call resetPassword API with the OTP, password, and email (make sure email is passed correctly)
-      const response = await resetPassword({ otp: otpValue, password });
-      
-      // Assuming response contains a success message
+      // Call resetPassword API with OTP and password
+      const response = await resetPassword(email, otp, password, confirmPassword);
+      toast.success(response.message, { autoClose: 2000 });
+      setTimeout(() => {
+        navigate('/');
+      }, 3000);
+
       if (response.success) {
         setSuccessMessage("Password reset successfully.");
         setError('');
@@ -43,6 +54,7 @@ function ForgotPassword() {
         setError("Failed to reset password.");
       }
     } catch (err) {
+      console.log('Error:', err);
       setError(err.message || "An error occurred while resetting the password.");
     }
   };
@@ -64,7 +76,7 @@ function ForgotPassword() {
                   Enter Your 6 Digit OTP *
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
-                  {otp.map((digit, index) => (
+                  {Otp.map((digit, index) => (
                     <TextField
                       key={index}
                       id={`otp-input-${index}`}
@@ -101,6 +113,7 @@ function ForgotPassword() {
                   OTP Verify
                 </Button>
 
+                {/* Display error or success message */}
                 {error && <Typography color="error" sx={{ marginTop: 2 }}>{error}</Typography>}
                 {successMessage && <Typography color="primary" sx={{ marginTop: 2 }}>{successMessage}</Typography>}
 

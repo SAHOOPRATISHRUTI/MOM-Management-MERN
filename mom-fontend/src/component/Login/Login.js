@@ -8,13 +8,15 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom';
 import { validateEmail, validatePassword } from '../../validator/validator';
+import { generateOTP } from '../../services/api'; // Import the generateOTP function
 
 function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const navigate = useNavigate();
+
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -31,14 +33,33 @@ function Login() {
     }
 
     try {
-      const response = await loginUser(email, password, rememberMe);
+      const response = await loginUser(email, password);
+      console.log(response);
+      
       toast.success(response.message, { autoClose: 2000 });
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/dashboard' );
       }, 3000);
+      console.log(email);
+      
     } catch (error) {
       toast.error(error.message, { autoClose: 3000 });
       setErrorMessage(error.message || 'An unexpected error occurred. Please try again.');
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email || !validateEmail(email)) {
+      toast.error('Please enter a valid email address for OTP.');
+      return;
+    }
+
+    try {
+      const response = await generateOTP(email); // Call the generateOTP API
+      toast.success(response.message || 'OTP sent successfully!', { autoClose: 2000 });
+      navigate('/forgot-password',{ state: { email: email }}); // Navigate to the forgot-password page
+    } catch (error) {
+      toast.error(error.message || 'Error generating OTP. Please try again.');
     }
   };
 
@@ -96,8 +117,11 @@ function Login() {
                     }
                     label="Remember me"
                   />
-                  <Button  style={{ textDecoration: 'none', color: '#3f51b5' }}>
-                  <Link to="/forgot-password">Forgot Password</Link>
+                  <Button
+                    onClick={handleForgotPassword} // Trigger the forgot password functionality
+                    style={{ textDecoration: 'none', color: '#3f51b5' }}
+                  >
+                    Forgot Password
                   </Button>
                 </div>
 

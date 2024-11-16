@@ -59,7 +59,9 @@ const messages = {
     nameisrequired:"Name is Required",
     invalidMobile:"Invalid Mobile",
     emailpasswordRequired:'Email and password are required',
-    emailAlreadyRegistered:"This email id is already register Please enter a new email id"
+    emailAlreadyRegistered:"This email id is already register Please enter a new email id",
+    confirmPasswordRequired:"Confirm Password Required",
+    registerplz:'Invalid email address. Please register first.'
 };
 
 module.exports = messages;

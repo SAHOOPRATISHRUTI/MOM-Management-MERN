@@ -23,7 +23,7 @@ const loginUser = async (email, password) => {
   }
 };
 
-// Generate OTP
+// Generate OTP for login
 const generateOTP = async (email) => {
   try {
     console.log("Sending OTP generation request for:", email);
@@ -44,7 +44,7 @@ const generateOTP = async (email) => {
   }
 };
 
-// Verify OTP
+// Verify OTP for login
 const verifyOTP = async (email, otp) => {
   try {
     console.log('Sending OTP verification request for:', email, otp);
@@ -71,13 +71,13 @@ const verifyOTP = async (email, otp) => {
 
 
 // Forgot Password
-const resetPassword = async (email,otp,password) => {
+const resetPassword = async (email, otp, password, confirmPassword) => {
   try {
     console.log("Sending forgot password request for:", email);
-    const response = await axios.post(`${API_URL}/forgot-password`, { email,otp,password });
-    return response.data;  
+    const response = await axios.post(`${API_URL}/forgot-password`, { email, otp, password, confirmPassword });
+    return response.data;
+    
   } catch (error) {
-    // Log the error message
     if (error.response) {
       console.error('Server Error:', error.response.data.message);
       throw new Error(error.response.data.message || 'Failed to send forgot password request');
@@ -91,8 +91,7 @@ const resetPassword = async (email,otp,password) => {
   }
 };
 
-
-// Send OTP
+// Send OTP for signup
 const sendOtp = async (email) => {
   try {
     console.log("Sending OTP request for:", email);
@@ -113,7 +112,7 @@ const sendOtp = async (email) => {
   }
 };
 
-// Verify OTP
+// Verify OTP gor sign up
 const verifyOtpforSignUp = async (email, otp) => {
   try {
     console.log('Sending OTP verification request for login:', email, otp);
