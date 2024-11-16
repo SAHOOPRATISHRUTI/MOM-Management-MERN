@@ -80,28 +80,6 @@ const signup = async (name,  email,phone,password, address,role,otp ) => {
 
 
 
-const updatePassword = async (email, newPassword) => {
-    // Validate new password (you can add more checks)
-    if (typeof newPassword !== 'string') {
-        throw new Error('Password should be a string');
-    }
-
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Find user by email and update the password
-    const updatedUser = await Users.findOneAndUpdate(
-        { email },
-        { password: hashedPassword },
-        { new: true } // This ensures the updated user object is returned
-    );
-
-    if (!updatedUser) {
-        throw new Error('User not found');
-    }
-
-    return { message: 'Password updated successfully!' };
-};
 
 
 
@@ -226,47 +204,41 @@ const verifyOTP = async (email, otp) => {
 };
 
 
-
-const resetPassword = async (email, otp, password, nwpassword) => {
-    // Ensure that both password and new password are strings
-    if (typeof password !== 'string') {
-        password = String(password);
-    }
-    if (typeof nwpassword !== 'string') {
-        nwpassword = String(nwpassword);
-    }
-
+const verifyOtpAndResetPassword = async (email, otp, password) => {
     try {
-        // Find the user by email
-        const user = await Users.findOne({ email });
-        if (!user) {
-            throw new Error(messages.userNotFound); // Use predefined message
-        }
-
-        // Verify OTP
-        const otpRecord = await OTP.findOne({ email, otp });
-        if (!otpRecord) {
-            throw new Error(messages.invalidOTP); // Use predefined message
-        }
-
-        // Check if new passwords match
-        if (password !== nwpassword) {
-            throw new Error(messages.passwordMismatch); // Use predefined message
-        }
-
-        // Hash the new password
-        const hashedPassword = await bcrypt.hash(nwpassword, 10);
-
-        // Update the user's password
-        user.password = hashedPassword;
-        await user.save();
-
-        return messages.passwordResetSuccess; // Use predefined success message
+     
+      const employee = await Users.findOne({ email });
+  
+      if (!employee) {
+        throw new Error('Employee not found');
+      }
+  
+      
+      if (employee.otp !== otp) {
+        throw new Error('Invalid OTP');
+      }
+  
+      if (employee.otpExpiry < Date.now()) {
+        throw new Error('OTP has expired');
+      }
+  
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      
+      employee.password = hashedPassword;
+      employee.isVerified = true; 
+      employee.otp = null; 
+      employee.otpAttempts = 0; 
+      employee.otpExpiry = null; 
+  
+     
+      await employee.save();
+  
+      return { message: 'Password updated successfully' };
     } catch (error) {
-        // Throw the error to be handled by the controller
-        throw new Error(error.message || messages.passwordUpdateFailed); // Use predefined message
+      throw new Error(error.message || 'An error occurred while resetting password');
     }
-};
+  };
 
 
 const sendOtp = async (email) => {
@@ -388,8 +360,6 @@ module.exports = {
     signup,
     generateAndSaveOtp,
     verifyOTP,
-    resetPassword,
-    updatePassword,
     sendOtp,
-    verifyOtpforLogin
+    verifyOtpforLogin,verifyOtpAndResetPassword
 }

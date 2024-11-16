@@ -175,21 +175,23 @@ const verifyOtp = async (req, res) => {
 };
 
 
-
-const resetPassword = async (req, res) => {
-    const { email, otp, password, nwpassword } = req.body;
-
+const verifyOtpAndResetPasswordController = async (req, res) => {
     try {
-        // Call the service to reset the password
-        const result = await authService.resetPassword(email, otp, password, nwpassword);
-
-        // If successful, send the success response
-        return Responses.successResponse(req, res, null, result, 200);
+      const { email, otp, password } = req.body;
+  
+      if (!email || !otp || !password) {
+        return res.status(400).json({ message: 'Email, OTP, and password are required' });
+      }
+  
+      const result = await authService.verifyOtpAndResetPassword(email, otp, password);
+  
+  
+      res.status(200).json(result);
     } catch (error) {
-        // If there's an error, send the error response with the appropriate message
-        return Responses.errorResponse(req, res, error.message, 400);
+      res.status(400).json({ message: error.message });
     }
-};
+  };
+
 
 const sendOtp = async (req, res) => {
     const { email } = req.body;
@@ -268,7 +270,7 @@ module.exports = {
     signup,
     generateOtp,
     verifyOtp,
-    resetPassword,
+    verifyOtpAndResetPasswordController,
     sendOtp,
     verifyOtpForLogin
 

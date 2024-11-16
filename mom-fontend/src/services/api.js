@@ -69,6 +69,29 @@ const verifyOTP = async (email, otp) => {
   }
 };
 
+
+// Forgot Password
+const resetPassword = async (email,otp,password) => {
+  try {
+    console.log("Sending forgot password request for:", email);
+    const response = await axios.post(`${API_URL}/forgot-password`, { email,otp,password });
+    return response.data;  
+  } catch (error) {
+    // Log the error message
+    if (error.response) {
+      console.error('Server Error:', error.response.data.message);
+      throw new Error(error.response.data.message || 'Failed to send forgot password request');
+    } else if (error.request) {
+      console.error('No response from server:', error.request);
+      throw new Error('No response from server');
+    } else {
+      console.error('Error during request:', error.message);
+      throw new Error('An error occurred during forgot password request');
+    }
+  }
+};
+
+
 // Send OTP
 const sendOtp = async (email) => {
   try {
@@ -132,4 +155,4 @@ const signupUser = async (name,  email,phone,password, address,role) => {
   }
 };
 
-export { loginUser, generateOTP, verifyOTP, signupUser, sendOtp, verifyOtpforSignUp };
+export { loginUser, generateOTP, verifyOTP, signupUser, sendOtp, verifyOtpforSignUp ,resetPassword};

@@ -3,26 +3,23 @@ import './Login.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { loginUser } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
-import { TextField, Button, Container, Grid, Typography, Box } from '@mui/material'; // Material UI imports
+import { TextField, Button, Container, Grid, Typography, Box, FormControlLabel, Checkbox } from '@mui/material';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom';
-import { validateEmail,validatePassword } from '../../validator/validator';
+import { validateEmail, validatePassword } from '../../validator/validator';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
-  // Form submit handler
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    // Clear previous error message
     setErrorMessage('');
 
-    // Validate email and password
     if (!email || !validateEmail(email)) {
       setErrorMessage('Please enter a valid email address.');
       return;
@@ -34,19 +31,13 @@ function Login() {
     }
 
     try {
-      const response = await loginUser(email, password);
-      console.log('Login successful:', response);
-      toast.success(response.message, {
-        autoClose: 2000,
-      });
+      const response = await loginUser(email, password, rememberMe);
+      toast.success(response.message, { autoClose: 2000 });
       setTimeout(() => {
         navigate('/dashboard');
       }, 3000);
     } catch (error) {
-      console.error('Login error:', error);
-      toast.error(error.message, {
-        autoClose: 3000,
-      });
+      toast.error(error.message, { autoClose: 3000 });
       setErrorMessage(error.message || 'An unexpected error occurred. Please try again.');
     }
   };
@@ -94,7 +85,21 @@ function Login() {
                   />
                 </div>
 
-                {/* ///{errorMessage && <Alert severity="error" sx={{ marginBottom: 2 }}>{errorMessage}</Alert>} */}
+                <div className="form-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        color="primary"
+                      />
+                    }
+                    label="Remember me"
+                  />
+                  <Button  style={{ textDecoration: 'none', color: '#3f51b5' }}>
+                  <Link to="/forgot-password">Forgot Password</Link>
+                  </Button>
+                </div>
 
                 <Button variant="contained" color="primary" fullWidth type="submit" sx={{ marginTop: 2 }}>
                   Sign In
@@ -105,12 +110,12 @@ function Login() {
                 </div>
 
                 <Button variant="outlined" fullWidth href="/signup" sx={{ marginTop: 2 }}>
-                <Link to ="/sign-up">Sign Up</Link>
+                  <Link to="/sign-up">Sign Up</Link>
                 </Button>
 
                 <a href="/" style={{ display: 'block', textAlign: 'center', marginTop: '15px' }}>
                   <div className="back">
-                    <span><Link to ="/signin">Back to Sign In</Link></span>
+                    <span><Link to="/signin">Back to Sign In</Link></span>
                   </div>
                 </a>
               </form>

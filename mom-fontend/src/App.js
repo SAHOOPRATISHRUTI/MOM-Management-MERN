@@ -2,11 +2,13 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import Login from './component/Login/Login';
+import ForgotPassword from './component/forgot-password/ForgotPassword';
 import Signin from './component/sign-in-OTP/Signin';
 import OTPVerification from './component/Verify-Otp/Verify-Otp';
 import Dashboard from './component/Dashboard/Dashboard';
 import 'react-toastify/dist/ReactToastify.css';
 import SignUp from './component/SignUp/SignUp';
+
 import './App.css';
 
 function App() {
@@ -34,6 +36,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/verify-otp" element={<OTPVerification />} />
         <Route path="/sign-up" element={<SignUp/>}/>
+        <Route path="/forgot-password" element={<ForgotPassword />}/>
       </Routes>
     </Router>
   );
