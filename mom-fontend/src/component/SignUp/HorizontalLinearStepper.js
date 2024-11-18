@@ -43,6 +43,9 @@ export default function HorizontalLinearStepper() {
   const [addressError, setAddressError] = React.useState('');
   const [passwordError, setPasswordError] = React.useState('');
 
+    // Email Verified state
+    const [emailVerified, setEmailVerified] = React.useState(false);
+
   // OTP states
   const [otp, setOtp] = React.useState('');
   const [otpSent, setOtpSent] = React.useState(false);
@@ -53,50 +56,51 @@ export default function HorizontalLinearStepper() {
   const isStepOptional = (step) => step === 1;
   const isStepSkipped = (step) => skipped.has(step);
 
-  const handleNext = () => {
-    let newSkipped = skipped;
-    if (isStepSkipped(activeStep)) {
-      newSkipped = new Set(newSkipped.values());
-      newSkipped.delete(activeStep);
-    }
 
+  const handleNext = () => {
     let hasError = false;
-    // Step 1 - Personal Information
+
+    // Step 1 - Personal Information validation
     if (activeStep === 0) {
-      if (!name) {
-        setNameError('Name is required');
+      if (!name || name.length < 3) {
+        setNameError('Name must be at least 3 characters.');
         hasError = true;
       } else {
         setNameError('');
       }
-      if (!phone || phone.length !== 10) {
-        setPhoneError('Mobile number must be 10 digits');
+      if (!phone || !/^\d{10}$/.test(phone)) {
+        setPhoneError('Phone number must be 10 digits.');
         hasError = true;
       } else {
         setPhoneError('');
       }
     }
 
-    // Step 2 - Contact Information
+    // Step 2 - Contact Information validation
     if (activeStep === 1) {
       if (!email || !/\S+@\S+\.\S+/.test(email)) {
-        setEmailError('Invalid email address');
+        setEmailError('Invalid email address.');
         hasError = true;
       } else {
         setEmailError('');
       }
       if (!address) {
-        setAddressError('Address is required');
+        setAddressError('Address is required.');
         hasError = true;
       } else {
         setAddressError('');
       }
+
+      if (!otpVerified) {
+        toast.warn('Please verify your email before proceeding.');
+        hasError = true;
+      }
     }
 
-    // Step 3 - Password
+    // Step 3 - Password validation
     if (activeStep === 2) {
       if (!password || password.length < 8) {
-        setPasswordError('Password must be at least 8 characters');
+        setPasswordError('Password must be at least 8 characters.');
         hasError = true;
       } else {
         setPasswordError('');
@@ -105,11 +109,13 @@ export default function HorizontalLinearStepper() {
 
     if (hasError) return;
 
+    // Proceed to next step
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
-    setSkipped(newSkipped);
   };
 
-  const handleBack = () => setActiveStep((prevActiveStep) => prevActiveStep - 1);
+  const handleBack = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+  };
 
   const handleOtpChange = (e) => setOtp(e.target.value);
 
@@ -117,7 +123,10 @@ export default function HorizontalLinearStepper() {
     setLoading(true);
 
     try {
-      await sendOtp(email); // Assume sendOtp function exists
+      const response = await sendOtp(email)
+      toast.success(response.success.message);
+      console.log(response.success.message);
+      
       setOtpSent(true);
       setOtpSentMessage(true);
       setLoading(false);
@@ -127,16 +136,17 @@ export default function HorizontalLinearStepper() {
       }, 3000);
     } catch (error) {
       setLoading(false);
-      toast.error(error.message); // Assume toast exists
+      toast.error(error.message);
     }
   };
 
+
   const handleVerifyOtp = async () => {
     try {
-      const response = await verifyOtpforSignUp(email, otp); // Assume verifyOtpforSignUp function exists
+      const response = await verifyOtpforSignUp(email, otp); 
       if (response.success) {
         setOtpVerified(true);
-        toast.success(response.message); // Assume toast exists
+        toast.success(response.message); 
       } else {
         toast.error(response.message);
       }
@@ -145,17 +155,19 @@ export default function HorizontalLinearStepper() {
     }
   };
 
+
   const handleSubmit = async () => {
     try {
       const response = await signupUser(name, email, phone, password, address, role); // Assume signupUser function exists
-      toast.success(response.message); // Assume toast exists
+      toast.success(response.message); 
       setTimeout(() => {
-        navigate('/'); // Navigate to home or login page
+        navigate('/'); 
       }, 3000);
     } catch (error) {
       toast.error(error.message);
     }
   };
+
   const handleChange = (event, type) => {
     const value = event.target.value;
   
@@ -226,166 +238,144 @@ export default function HorizontalLinearStepper() {
       </Stepper>
 
       {activeStep === steps.length ? (
-        <React.Fragment>
+        <Box>
           <Typography sx={{ mt: 2, mb: 1 }}>All steps completed - you're finished</Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-            <Box sx={{ flex: '1 1 auto' }} />
-            <Button onClick={handleSubmit}>Finish</Button>
-          </Box>
-        </React.Fragment>
+          <Button onClick={handleSubmit}>Finish</Button>
+        </Box>
       ) : (
-        <React.Fragment>
+        <Box>
           <Typography sx={{ mt: 2, mb: 1 }}>{steps[activeStep]}</Typography>
-          <Box sx={{ mb: 3 }}>
-            {activeStep === 0 && (
-              <>
+
+          {activeStep === 0 && (
+            <>
+              <TextField
+                label="Name"
+                fullWidth
+                variant="outlined"
+                value={name}
+                onChange={(e) =>handleChange(e, 'name')}
+                error={Boolean(nameError)}
+                helperText={nameError}
+                sx={{ mt: 2 }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <TextField
+                label="Phone"
+                fullWidth
+                variant="outlined"
+                value={phone}
+                onChange={(e) =>handleChange(e, 'phone')}
+                error={Boolean(phoneError)}
+                helperText={phoneError}
+                sx={{ mt: 2 }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PhoneIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </>
+          )}
+
+          {activeStep === 1 && (
+            <>
+              <TextField
+                label="Email"
+                fullWidth
+                variant="outlined"
+                value={email}
+                onChange={(e) =>handleChange(e, 'email')}
+                error={Boolean(emailError)}
+                helperText={emailError}
+                sx={{ mt: 2 }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon />
+                    </InputAdornment>
+                  ),
+                  endAdornment: email && !otpVerified && (
+                    <InputAdornment position="end">
+                      <Button onClick={handleSendOtp} disabled={loading}>
+                        {loading ? <CircularProgress size={20} /> : 'Send OTP'}
+                      </Button>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              {otpSent && !otpVerified && (
                 <TextField
-                  label="Name"
+                  label="OTP"
                   fullWidth
                   variant="outlined"
-                  value={name}
-                  onChange={(e) =>handleChange(e, 'name')}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
                   sx={{ mt: 2 }}
-                  error={Boolean(nameError)}
-                  helperText={nameError}
                   InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PersonIcon />
-                      </InputAdornment>
+                    endAdornment: (
+                      <Button onClick={handleVerifyOtp}>Verify OTP</Button>
                     ),
                   }}
                 />
-                <TextField
-                  label="Mobile"
-                  fullWidth
-                  variant="outlined"
-                  value={phone}
-                  onChange={(e) =>handleChange(e, 'phone')}
-                  sx={{ mt: 2 }}
-                  error={Boolean(phoneError)}
-                  helperText={phoneError}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PhoneIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </>
-            )}
-            {activeStep === 1 && (
-              <>
-                <TextField
-                  label="Email"
-                  fullWidth
-                  variant="outlined"
-                  value={email}
-                  onChange={(e) =>handleChange(e, 'email')}
-                  sx={{ mt: 2 }}
-                  error={Boolean(emailError)}
-                  helperText={emailError}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <EmailIcon />
-                      </InputAdornment>
-                    ),
-                    endAdornment: email && !otpVerified && /[a-z0-9]+@[a-z]+\.[a-z]{2,3}/.test(email) && (
-                      <InputAdornment position="end">
-                        <Button
-                          variant="outlined"
-                          onClick={handleSendOtp}
-                          size="small"
-                          style={{ padding: '2px 6px' }}
-                        >
-                          {loading ? <CircularProgress size={20} /> : 'Send OTP'}
-                        </Button>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                {otpSentMessage && !otpVerified && (
-                  <Typography variant="body2" color="success.main" mt={2}>
-                    OTP Sent Successfully to your email!
-                  </Typography>
-                )}
-                {otpSent && !otpVerified && (
-                  <TextField
-                    label="Enter OTP"
-                    type="text"
-                    value={otp}
-                    onChange={handleOtpChange}
-                    fullWidth
-                    variant="outlined"
-                    sx={{ mt: 2 }}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <Button
-                            variant="outlined"
-                            onClick={handleVerifyOtp}
-                            size="small"
-                            style={{ padding: '2px 6px', fontSize: '10px' }}
-                          >
-                            {loading ? <CircularProgress size={20} /> : 'Verify OTP'}
-                          </Button>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                )}
-                <TextField
-                  label="Address"
-                  fullWidth
-                  variant="outlined"
-                  value={address}
-                  onChange={(e) =>handleChange(e, 'address')}
-                  sx={{ mt: 2 }}
-                  error={Boolean(addressError)}
-                  helperText={addressError}
-                 
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <HomeIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </>
-            )}
-            {activeStep === 2 && (
-              <>
-                <TextField
-                  label="Password"
-                  fullWidth
-                  variant="outlined"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  error={Boolean(passwordError)}
-                  helperText={passwordError}
-                  sx={{ mt: 2 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LockIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </>
-            )}
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button color="inherit" onClick={handleBack} sx={{ mr: 1 }}>
+              )}
+              <TextField
+                label="Address"
+                fullWidth
+                variant="outlined"
+                value={address}
+                onChange={(e) =>handleChange(e, 'address')}
+                error={Boolean(addressError)}
+                helperText={addressError}
+                sx={{ mt: 2 }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <HomeIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </>
+          )}
+
+          {activeStep === 2 && (
+            <TextField
+              label="Password"
+              type="password"
+              fullWidth
+              variant="outlined"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              error={Boolean(passwordError)}
+              helperText={passwordError}
+              sx={{ mt: 2 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          )}
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+            <Button disabled={activeStep === 0} onClick={handleBack} sx={{ mr: 1 }}>
               Back
             </Button>
-            <Button onClick={handleNext}>{activeStep === steps.length - 1 ? 'Finish' : 'Next'}</Button>
+            <Button onClick={handleNext}>
+              {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
+            </Button>
           </Box>
-        </React.Fragment>
+        </Box>
       )}
     </Box>
   );
