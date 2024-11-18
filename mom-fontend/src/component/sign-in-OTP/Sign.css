@@ -8,7 +8,7 @@
 }
 
 .blue-box {
-  background-color: #4e73df;
+  background-color: #5d66d9 !;
   color: white;
   padding: 20px;
   border-radius: 10px;
@@ -17,4 +17,30 @@
 .copyright {
   font-size: 12px;
   color: #B0B0B0;
+}
+
+
+
+button[type="submit"] {
+  background-color: #5d66d9 !important;
+  color: white;
+  border-radius: 5px;
+  padding: 10px;
+}
+.css-1jgzpw8-MuiTypography-root {
+  margin: 0;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-weight: 300;
+  font-size: 3.75rem;
+  line-height: 1.2;
+  letter-spacing: -0.00833em;
+  color: #6069da !important;
+  margin-bottom: 16px;
+}
+
+.css-do3ns5-MuiTypography-root {
+
+  color: black !important;
+  display: flex;
+  justify-content: center;
 }

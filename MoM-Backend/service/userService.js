@@ -55,7 +55,7 @@ const signup = async (name,  email,phone,password, address,role,otp ) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new Users({
-        name,  email,phone,password: hashedPassword, address,role,otp,
+        name,  email,phone,password: hashedPassword,role,address,otp,
         otpExpiry: Date.now() + 10 * 60 * 1000,
         
     });
@@ -82,30 +82,33 @@ const generateAndSaveOtp = async (email) => {
     }
 
     const now = Date.now(); 
-    let otpRecord = await Users.findOne({ email });
+    let otpRecord = await Users.findOne({ email });  // Make sure OTP is queried from the OTP collection
 
     const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-   
+    // If OTP record doesn't exist, create a new one
     if (!otpRecord) {
-        otpRecord = new OTP({
+        otpRecord = new Users({
             email,
             otp: newOtp,
             otpAttempts: 1,
             createdAt: now,
-            otpExpiry: new Date(now + OTP_EXPIRATION_TIME),  
+            otpExpiry: new Date(now + OTP_EXPIRATION_TIME),
         });
     } else {
-        // If otpExpiry is missing or expired, reset OTP and set new expiry time
-        const otpExpiryTime =new Date(now + OTP_EXPIRATION_TIME)
-        console.log(otpExpiryTime);
-        
-        
         // If OTP attempts exceed the max or OTP is expired, reset OTP
-        if (otpRecord.otpAttempts >= MAX_REQUESTS ) {
+        const otpExpiryTime = new Date(now + OTP_EXPIRATION_TIME);
+        
+        // Check if OTP attempts are more than the max allowed and OTP is still valid
+        if (otpRecord.otpAttempts >= MAX_REQUESTS && otpRecord.otpExpiry > now) {
+            return { error: 'OTP has been sent 3 times, Please try again later.' };
+        }
+
+        // If OTP has expired or attempts have been reset, generate a new OTP
+        if (otpRecord.otpAttempts >= MAX_REQUESTS || otpRecord.otpExpiry <= now) {
             otpRecord.otp = newOtp;
             otpRecord.createdAt = now;
-            otpRecord.otpExpiry = otpExpiryTime;  // New expiry time
+            otpRecord.otpExpiry = otpExpiryTime;
             otpRecord.otpAttempts = 1;  // Reset attempts
         } else {
             // Otherwise, increment attempts if OTP is still valid
@@ -122,8 +125,17 @@ const generateAndSaveOtp = async (email) => {
     const emailSubject = 'OTP to Verify Your Email';
     const mailData = `<p>Your OTP is <strong>${otpRecord.otp}</strong>. It will expire in 10 minutes.</p>`;
     await sendOtpEmail(email, emailSubject, mailData);
+    
+    const localOtpExpiry = otpRecord.otpExpiry.toLocaleString();  
+    const localCreatedAt = otpRecord.createdAt.toLocaleString();
+    const localUpdatedAt =otpRecord.updatedAt.toLocaleString();
+    
+    console.log("Local OTP Expiry: ", localOtpExpiry);
+    console.log("Local Created At: ", localCreatedAt);
+    console.log("Local Updated At: ", localUpdatedAt);
 
-    return { otp: otpRecord.otp, otpAttempts: otpRecord.otpAttempts, otpSent: true, otpExpiry:otpRecord.otpExpiry };
+    return { otp: otpRecord.otp, otpAttempts: otpRecord.otpAttempts, otpSent: true, otpExpiry: otpRecord.otpExpiry };
+   
 };
 
 
@@ -191,12 +203,12 @@ const verifyOtpAndResetPassword = async (email, otp, password, confirmPassword) 
     try {
         // Check if email is provided
         if (!email) {
-            return { emailNotFound: true };
+            return { error: messages.emailRequired };
         }
 
         // Check if password or confirmPassword is provided
         if (!password || !confirmPassword) {
-            return { passwordRequired: true };
+            return { error: messages.passwordRequired };
         }
 
         // Check if the password and confirmPassword match
@@ -211,7 +223,7 @@ const verifyOtpAndResetPassword = async (email, otp, password, confirmPassword) 
         
         // Check if user exists
         if (!user) {
-            return { emailNotFound: true };
+            return { error: messages.emailNotFound };
         }
 
         console.log('User found:', user); // Debugging: Check user object

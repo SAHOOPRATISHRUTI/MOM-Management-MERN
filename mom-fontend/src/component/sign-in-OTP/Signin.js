@@ -7,6 +7,7 @@ import { generateOTP } from '../../services/api';
 import { validateEmail } from '../../validator/validator';
 import { ToastContainer, toast } from 'react-toastify';
 import './Sign.css';
+import meeting from '../../assets/meeting.png';
 
 const Signin = () => {
   const [email, setEmail] = useState('');
@@ -15,35 +16,59 @@ const Signin = () => {
 
   const navigate = useNavigate();
 
+  // Handle email input change and validate on every keystroke
+  const handleEmailChange = (e) => {
+    const inputEmail = e.target.value;
+    setEmail(inputEmail);
+
+    if (!inputEmail) {
+      setErrorMessage('Email is required');
+    } 
+
+    else if (!validateEmail(inputEmail)) {
+      setErrorMessage('Please enter a valid email address.');
+    } else {
+      setErrorMessage('');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setErrorMessage('');  // Clear previous error messages
+  
+    // Validate the email before proceeding with OTP generation
     if (!email || !validateEmail(email)) {
       setErrorMessage('Please enter a valid email address.');
-      return;
+      return;  // Exit the function if the email is invalid
     }
-
+  
+    // Set loading state to true while waiting for the API response
     setLoading(true);
-    setErrorMessage('');
-
+  
     try {
-      const response = await generateOTP(email);
-
+      const response = await generateOTP(email);  // API call to generate OTP
+  
       if (response.success) {
+        // If OTP generation is successful, save email and show success message
         localStorage.setItem('email', email);
         toast.success(response.message, { autoClose: 2000 });
-
+  
+        // Navigate to OTP verification page after a brief delay
         setTimeout(() => navigate('/verify-otp'), 3000);
       } else {
+        // If OTP generation failed, show error message
         setErrorMessage('Failed to send OTP. Please try again.');
       }
     } catch (error) {
+      // Handle any errors from the API call
       setErrorMessage('Something went wrong. Please try again.');
       toast.error(error.message, { autoClose: 3000 });
     } finally {
+      // Stop the loading state once the API call completes
       setLoading(false);
     }
   };
+  
 
   return (
     <section className="sign-in">
@@ -67,7 +92,7 @@ const Signin = () => {
                   label="Email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={handleEmailChange}  
                   error={Boolean(errorMessage)}
                   helperText={errorMessage}
                   InputProps={{
@@ -110,11 +135,6 @@ const Signin = () => {
                         Sign In With Password
                       </Button>
                     </Box>
-                    <Box sx={{ textAlign: 'left', marginTop: 2 }}>
-                      <Link href="/reset-password" variant="body2" color="textSecondary">
-                        Set Password
-                      </Link>
-                    </Box>
                   </>
                 )}
               </form>
@@ -132,7 +152,7 @@ const Signin = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                 <img
-                  src="https://demo2.ntspl.co.in/assets/images/meeting.png"
+                  src={meeting}
                   alt="Meeting"
                   style={{ maxWidth: '80%', borderRadius: '12px' }}
                 />

@@ -6,6 +6,7 @@ import { ArrowBack } from '@mui/icons-material';
 import { ToastContainer, toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import './Verify.css';
+import meeting from '../../assets/meeting.png'
 
 const VerifyOTP = () => {
   const [email, setEmail] = useState('');
@@ -196,7 +197,7 @@ const VerifyOTP = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                 <img
-                  src="https://demo2.ntspl.co.in/assets/images/meeting.png"
+                  src={meeting}
                   alt="Meeting"
                   style={{ maxWidth: '80%', borderRadius: '12px' }}
                 />

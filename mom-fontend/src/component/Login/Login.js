@@ -9,6 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom';
 import { validateEmail, validatePassword } from '../../validator/validator';
 import { generateOTP } from '../../services/api'; // Import the generateOTP function
+import meeting from '../../assets/meeting.png'
 
 function Login() {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ function Login() {
       
       toast.success(response.message, { autoClose: 2000 });
       setTimeout(() => {
-        navigate('/dashboard' );
+        navigate('/dashboard');
       }, 3000);
       console.log(email);
       
@@ -156,7 +157,7 @@ function Login() {
                   Where Meetings Become Meaningful
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <img src="https://demo2.ntspl.co.in/assets/images/meeting.png" alt="Meeting" width="80%" />
+                  <img src={meeting} alt="Meeting" width="80%" />
                 </Box>
               </div>
               <p className="copyright" style={{ textAlign: 'center', marginTop: 3 }}>

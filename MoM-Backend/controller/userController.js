@@ -98,21 +98,29 @@ const generateOtp = async (req, res) => {
     try {
         const result = await authService.generateAndSaveOtp(email);
 
+        // If email is not registered, return a failure response
         if (result.emailNotRegistered) {
             return Responses.failResponse(req, res, null, messages.emailnotRegister, 400);
         }
 
-        if (result.maxOtpReached) {
-            return Responses.failResponse(req, res, null, messages.MAX_ATTEMPTS_REACHED, 429);
+        // If maximum OTP attempts are reached and the OTP is still valid, return an error response
+        if (result.error) {
+            return Responses.failResponse(req, res, null, result.error, 429);  // Custom error from generateAndSaveOtp
         }
 
-        return Responses.successResponse(req, res, { otp: result.otp, otpAttempts: result.otpAttempts, otpExpiry: result.otpExpiry }, messages.OTP_GENERATION_SUCCESS, 200);
+        // Return the OTP generation success response
+        return Responses.successResponse(req, res, { 
+            otp: result.otp, 
+            otpAttempts: result.otpAttempts, 
+            otpExpiry: result.otpExpiry 
+        }, messages.OTP_GENERATION_SUCCESS, 200);
 
     } catch (error) {
         console.error('Error generating OTP:', error);
         return Responses.errorResponse(req, res, new Error(messages.OTP_ERROR), 500, 'Error generating OTP');
     }
 };
+
 
 
 
@@ -167,24 +175,20 @@ const verifyOtpAndResetPasswordController = async (req, res) => {
     const { email, otp, password, confirmPassword } = req.body;
 
     try {
-        const result = await authService.verifyOtpAndResetPassword(email, otp, password, confirmPassword);
-        // Validate input fields (e.g., email, password, etc.)
-        // if (result.emailNotFound) {
-        //     return Responses.failResponse(req, res, null, messages.emailRequired, 400);
-        // }
-
-        // if (result.passwordRequired) {
-        //     return Responses.failResponse(req, res, null, messages.passwordRequired, 400);
-        // }
-
         // Call the service to verify OTP and reset password
-       
+        const result = await authService.verifyOtpAndResetPassword(email, otp, password, confirmPassword);
 
-        // Respond with success message
-        return Responses.successResponse(req, res, result, messages.passwordResetSuccess, 200);
+        // If there's an error in the result, return failure response
+        if (result.error) {
+            return Responses.failResponse(req, res, null, result.error, 400);
+        }
+
+        // If everything is successful, return success response
+        return Responses.successResponse(req, res, result, result.success || messages.passwordResetSuccess, 200);
     } catch (error) {
-        // Handle errors and send appropriate response
-        return Responses.errorResponse(req, res, error.message);
+        // Handle unexpected errors
+        console.error('Error in controller:', error);
+        return Responses.errorResponse(req, res, error.message || 'Internal server error');
     }
 };
 

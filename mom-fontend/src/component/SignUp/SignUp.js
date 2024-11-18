@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import {  Container, Grid, Typography, Box } from '@mui/material';
 import HorizontalLinearStepper from './HorizontalLinearStepper';
+import meeting from '../../assets/meeting.png'
 import './SignUp.css'
 
 function SignUp() {
-  // const [email, setEmail] = useState('');
-  // const [password, setPassword] = useState('');
-  // const [errorMessage, setErrorMessage] = useState('');
 
   return (
     <section className="user-login" style={{ backgroundColor: '#f4f6f8', minHeight: '100vh', padding: '40px 0' }}>
@@ -31,7 +29,7 @@ function SignUp() {
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                   <img
-                    src="https://demo2.ntspl.co.in/assets/images/meeting.png"
+                    src={meeting}
                     alt="Meeting"
                     width="80%"
                     style={{ borderRadius: '10px', boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)' }}

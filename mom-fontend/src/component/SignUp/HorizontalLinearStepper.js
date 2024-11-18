@@ -61,6 +61,7 @@ export default function HorizontalLinearStepper() {
     }
 
     let hasError = false;
+    // Step 1 - Personal Information
     if (activeStep === 0) {
       if (!name) {
         setNameError('Name is required');
@@ -76,6 +77,7 @@ export default function HorizontalLinearStepper() {
       }
     }
 
+    // Step 2 - Contact Information
     if (activeStep === 1) {
       if (!email || !/\S+@\S+\.\S+/.test(email)) {
         setEmailError('Invalid email address');
@@ -91,6 +93,7 @@ export default function HorizontalLinearStepper() {
       }
     }
 
+    // Step 3 - Password
     if (activeStep === 2) {
       if (!password || password.length < 8) {
         setPasswordError('Password must be at least 8 characters');
@@ -114,7 +117,7 @@ export default function HorizontalLinearStepper() {
     setLoading(true);
 
     try {
-      await sendOtp(email);
+      await sendOtp(email); // Assume sendOtp function exists
       setOtpSent(true);
       setOtpSentMessage(true);
       setLoading(false);
@@ -124,16 +127,16 @@ export default function HorizontalLinearStepper() {
       }, 3000);
     } catch (error) {
       setLoading(false);
-      toast.error(error.message);
+      toast.error(error.message); // Assume toast exists
     }
   };
 
   const handleVerifyOtp = async () => {
     try {
-      const response = await verifyOtpforSignUp(email, otp);
+      const response = await verifyOtpforSignUp(email, otp); // Assume verifyOtpforSignUp function exists
       if (response.success) {
         setOtpVerified(true);
-        toast.success(response.message);
+        toast.success(response.message); // Assume toast exists
       } else {
         toast.error(response.message);
       }
@@ -144,34 +147,82 @@ export default function HorizontalLinearStepper() {
 
   const handleSubmit = async () => {
     try {
-      const response = await signupUser(name, email, phone, password, address, role);
-      toast.success(response.message);
+      const response = await signupUser(name, email, phone, password, address, role); // Assume signupUser function exists
+      toast.success(response.message); // Assume toast exists
       setTimeout(() => {
-        navigate('/');
+        navigate('/'); // Navigate to home or login page
       }, 3000);
     } catch (error) {
       toast.error(error.message);
     }
   };
+  const handleChange = (event, type) => {
+    const value = event.target.value;
+  
+    if (type === 'name') {
+      setName(value);
+      // Check if name is empty or less than 4 characters
+      if (!value) {
+        setNameError('This field is required');
+      } else if (value.length <= 3) {
+        setNameError('Name must be greater than 3 characters');
+      } else {
+        setNameError('');
+      }
+    }
+  
+    if (type === 'phone') {
+      setPhone(value);
+      // Check if phone number is empty or not 10 characters
+      if (!value) {
+        setPhoneError('This field is required');
+      } else if (value.length !== 10) {
+        setPhoneError('Mobile number must be 10 digits');
+      } else {
+        setPhoneError('');
+      }
+    }
+  
+    if (type === 'email') {
+      setEmail(value);
+      // Check if email is valid
+      if (/\S+@\S+\.\S+/.test(value)) {
+        setEmailError('');
+      } else {
+        setEmailError('Invalid email address');
+      }
+    }
+  
+    if (type === 'address') {
+      setAddress(value);
+      // Check if address is empty
+      if (!value) {
+        setAddressError('This field is required');
+      } else {
+        setAddressError('');
+      }
+    }
+  
+    if (type === 'password') {
+      setPassword(value);
+      // Check if password is at least 8 characters
+      if (value.length >= 8) {
+        setPasswordError('');
+      } else {
+        setPasswordError('Password must be at least 8 characters');
+      }
+    }
+  };
+  
 
   return (
     <Box sx={{ width: '100%' }}>
       <Stepper activeStep={activeStep}>
-        {steps.map((label, index) => {
-          const stepProps = {};
-          const labelProps = {};
-          if (isStepOptional(index)) {
-            labelProps.optional = <Typography variant="caption">Optional</Typography>;
-          }
-          if (isStepSkipped(index)) {
-            stepProps.completed = false;
-          }
-          return (
-            <Step key={label} {...stepProps}>
-              <StepLabel {...labelProps}>{label}</StepLabel>
-            </Step>
-          );
-        })}
+        {steps.map((label, index) => (
+          <Step key={label}>
+            <StepLabel>{label}</StepLabel>
+          </Step>
+        ))}
       </Stepper>
 
       {activeStep === steps.length ? (
@@ -193,7 +244,8 @@ export default function HorizontalLinearStepper() {
                   fullWidth
                   variant="outlined"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) =>handleChange(e, 'name')}
+                  sx={{ mt: 2 }}
                   error={Boolean(nameError)}
                   helperText={nameError}
                   InputProps={{
@@ -209,7 +261,7 @@ export default function HorizontalLinearStepper() {
                   fullWidth
                   variant="outlined"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) =>handleChange(e, 'phone')}
                   sx={{ mt: 2 }}
                   error={Boolean(phoneError)}
                   helperText={phoneError}
@@ -230,7 +282,8 @@ export default function HorizontalLinearStepper() {
                   fullWidth
                   variant="outlined"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) =>handleChange(e, 'email')}
+                  sx={{ mt: 2 }}
                   error={Boolean(emailError)}
                   helperText={emailError}
                   InputProps={{
@@ -288,10 +341,11 @@ export default function HorizontalLinearStepper() {
                   fullWidth
                   variant="outlined"
                   value={address}
-                  onChange={(e) => setAddress(e.target.value)}
+                  onChange={(e) =>handleChange(e, 'address')}
                   sx={{ mt: 2 }}
                   error={Boolean(addressError)}
                   helperText={addressError}
+                 
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -325,19 +379,11 @@ export default function HorizontalLinearStepper() {
               </>
             )}
           </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-            <Button
-              color="inherit"
-              disabled={activeStep === 0}
-              onClick={handleBack}
-              sx={{ mr: 1 }}
-            >
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button color="inherit" onClick={handleBack} sx={{ mr: 1 }}>
               Back
             </Button>
-            <Box sx={{ flex: '1 1 auto' }} />
-            <Button onClick={handleNext}>
-              {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
-            </Button>
+            <Button onClick={handleNext}>{activeStep === steps.length - 1 ? 'Finish' : 'Next'}</Button>
           </Box>
         </React.Fragment>
       )}

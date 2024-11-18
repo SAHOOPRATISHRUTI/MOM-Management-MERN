@@ -5,6 +5,8 @@ import { resetPassword } from '../../services/api'; // Import the API method
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
+import meeting from '../../assets/meeting.png'
+
 function ForgotPassword() {
   const location = useLocation();
   const [Otp, setOtp] = useState(new Array(6).fill(''));
@@ -35,7 +37,7 @@ function ForgotPassword() {
 
     // Check if OTP, password and confirmPassword are valid
     if (!otp || password !== confirmPassword) {
-      setError("OTP or passwords do not match.");
+      setError("Passwords do not match.");
       return;
     }
 
@@ -134,7 +136,7 @@ function ForgotPassword() {
                 Where Meetings Become Meaningful
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                <img src="https://demo2.ntspl.co.in/assets/images/meeting.png" alt="Meeting" width="80%" />
+                <img src={meeting} alt="Meeting" width="80%" />
               </Box>
               <p className="copyright" style={{ textAlign: 'center', marginTop: 3 }}>
                 © 2024 NTSPL All Rights Reserved
