@@ -384,4 +384,144 @@
      flex-grow: 0 !important; 
     align-items: center;
 }
+.main-content {
+    padding-left: 20px; /* Creates space on the left of the main content */
+  }
+  
+  .sidebar {
+    padding-left: 15px; /* Creates space on the left of the sidebar */
+  }
+/* Add left padding or margin to create space */
+.main-content {
+    padding-left: 20px; /* Adjust this value as per your needs */
+  }
+  
+  .sidebar {
+    padding-left: 15px; /* Adjust the sidebar padding to create space */
+  }
+    
+  /* General container setup */
+.container-fluid {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  
+
+  .navbar-brand img {
+    width: 120px;
+  }
+  
+  .navbar-nav .nav-item {
+    margin-left: 15px;
+  }
+  
+  .navbar-nav .nav-link {
+    color: #fff;
+  }
+  
+  .navbar-nav .nav-link:hover {
+    color: #ccc;
+  }
+  
+  .sidebar {
+    background-color: #343a40;
+    color: white;
+    padding: 20px;
+    height: 100vh;
+    position: fixed;
+    width: 220px;
+  }
+  
+  .sidebar .logo img {
+    width: 100px;
+  }
+  
+  .sidebar .navbar-nav {
+    margin-top: 30px;
+  }
+  
+  .sidebar .nav-item .nav-link {
+    color: white;
+  }
+  
+  .sidebar .nav-item .nav-link:hover {
+    background-color: #495057;
+    color: white;
+  }
+  
+  .main-content {
+    margin-left: 240px;
+    padding: 20px;
+  }
+  
+  .meeting-header-text h2 {
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
+  .table-box {
+    margin-top: 30px;
+  }
+  
+  .table-container {
+    margin-top: 30px;
+  }
+  
+  .search-box {
+    margin-bottom: 20px;
+    padding: 10px;
+    width: 100%;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  th {
+    background-color: #f2f2f2;
+  }
+  
+  .submit-btn {
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+  }
+  
+  .submit-btn:hover {
+    background-color: #218838;
+  }
+  
+  .btn {
+    padding: 5px 10px;
+    border-radius: 5px;
+  }
+  
+  .btn-edit {
+    background-color: #ffc107;
+    color: white;
+  }
+  
+  .btn-edit:hover {
+    background-color: #e0a800;
+  }
+  
+  .btn-delete {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  .btn-delete:hover {
+    background-color: #c82333;
+  }
   

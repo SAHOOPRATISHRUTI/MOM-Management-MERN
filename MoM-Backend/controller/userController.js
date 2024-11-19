@@ -94,7 +94,6 @@ const signup = async (req, res) => {
 
 
 
-// OTP Generation Logic for Login
 const generateOtp = async (req, res) => {
     const { email } = req.body;
 
@@ -130,7 +129,6 @@ const verifyOtp = async (req, res) => {
     const { email, otp } = req.body;
 
     try {
-        // Check if email and OTP are provided
         if (!email) {
             return Responses.failResponse(req, res, null, messages.emailRequired, 400);
         }
@@ -139,22 +137,19 @@ const verifyOtp = async (req, res) => {
             return Responses.failResponse(req, res, null, messages.otpRequired, 400);
         }
 
-        // Validate email format
         const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
         if (!emailRegex.test(email)) {
             return Responses.failResponse(req, res, null, messages.invalidEmailFormat, 400);
         }
 
-        // Validate OTP format (e.g., 6 digits)
         if (!/^\d{6}$/.test(otp)) {
             return Responses.failResponse(req, res, null, messages.invalidOtpFormat, 400);
         }
-
-        // Call the service to verify the OTP
+     
         const result = await authService.verifyOTP(email, otp);
 
         if (!result.success) {
-            // Handle OTP verification failure
+            
             if (result.invalidOtp) {
                 return Responses.failResponse(req, res, null, messages.invalidOtp, 400);
             }
@@ -163,14 +158,13 @@ const verifyOtp = async (req, res) => {
             }
         }
 
-        // If OTP is verified successfully, return the token
         if (result.success && result.verified) {
             return Responses.successResponse(req, res, {
-                token: result.token // The token is already included in the service response
+                token: result.token
             }, messages.otpVerificationSuccess, 200);
         }
 
-        // If OTP verification failed for some reason
+       
         return Responses.failResponse(req, res, null, messages.otpVerificationFailed, 400);
 
     } catch (error) {
@@ -180,24 +174,18 @@ const verifyOtp = async (req, res) => {
 };
 
 
-
-
 const verifyOtpAndResetPasswordController = async (req, res) => {
     const { email, otp, password, confirmPassword } = req.body;
 
     try {
-        // Call the service to verify OTP and reset password
         const result = await authService.verifyOtpAndResetPassword(email, otp, password, confirmPassword);
 
-        // If there's an error in the result, return failure response
         if (result.error) {
             return Responses.failResponse(req, res, null, result.error, 400);
         }
 
-        // If everything is successful, return success response
         return Responses.successResponse(req, res, result, result.success || messages.passwordResetSuccess, 200);
     } catch (error) {
-        // Handle unexpected errors
         console.error('Error in controller:', error);
         return Responses.errorResponse(req, res, error.message || 'Internal server error');
     }
@@ -275,26 +263,24 @@ const verifyOtpForSignUP = async (req, res) => {
 
 const logoutController = async (req, res) => {
     try {
-        // Ensure to call the correct logoutService directly and await the result
+   
         const result = await authService.logoutService(req);
 
         // Check if result is undefined or null
         if (!result) {
-            return Responses.failResponse(req, res, null, 'Logout failed: No result from service', 400);
+            return Responses.failResponse(req, res, null,messages.internalError, 400);
         }
 
         // If there's an error in the result, return failure response
         if (result.error) {
             return Responses.failResponse(req, res, null, result.error, 400);
         }
-
-        // If everything is successful, return success response
-        return Responses.successResponse(req, res, result, messages.logoutSuccess || 'Successfully logged out', 200);
+    
+        return Responses.successResponse(req, res, result, messages.logoutSuccess , 200);
     } catch (error) {
-        // Handle unexpected errors
         console.error('Error in logout controller:', error);
         if (!res.headersSent) {
-            return Responses.errorResponse(req, res, error.message || 'Internal server error', 500);
+            return Responses.errorResponse(req, res, error.message , 500);
         }
     }
 };
