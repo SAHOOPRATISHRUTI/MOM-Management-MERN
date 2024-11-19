@@ -7,6 +7,8 @@ const loginUser = async (email, password) => {
   try {
     console.log("Sending login request with:", email, password); 
     const response = await axios.post(`${API_URL}/login`, { email, password });
+    localStorage.setItem('authToken', response.data.token);
+    console.log(response.data.token);
     return response.data;
   } catch (error) {
     // Log the error message
@@ -49,6 +51,8 @@ const verifyOTP = async (email, otp) => {
   try {
     console.log('Sending OTP verification request for:', email, otp);
     const response = await axios.post(`${API_URL}/verify-otp`, { email, otp });
+    localStorage.setItem('authToken', response.data.token);
+    console.log(response.data);
     
     console.log('OTP verification response:', response.data);
     
@@ -154,4 +158,35 @@ const signupUser = async (name,  email,phone,password, address,role) => {
   }
 };
 
-export { loginUser, generateOTP, verifyOTP, signupUser, sendOtp, verifyOtpforSignUp ,resetPassword};
+const logoutUser = async () => {
+  try {
+    console.log("Sending logout request");
+
+    // Make the API request to logout
+    const response = await axios.post(`${API_URL}/logout`, null, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('authToken')}` // Send token in the header
+      }
+    });
+
+    // Clear the token from localStorage or sessionStorage
+    localStorage.removeItem('authToken'); // Removing token on logout
+
+    return response.data;  // Return the server response message
+
+  } catch (error) {
+    // Log the error message
+    if (error.response) {
+      console.error('Server Error:', error.response.data.message);
+      throw new Error(error.response.data.message || 'Logout failed');
+    } else if (error.request) {
+      console.error('No response from server:', error.request);
+      throw new Error('No response from server');
+    } else {
+      console.error('Error during request:', error.message);
+      throw new Error('An error occurred during the logout request');
+    }
+  }
+};
+
+export { loginUser, generateOTP, verifyOTP, signupUser, sendOtp, verifyOtpforSignUp ,resetPassword,logoutUser};

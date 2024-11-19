@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const session = require('express-session'); // Import session middleware
 const PORT = process.env.PORT || 5555;
 
 const corsOptions = {
@@ -16,17 +17,25 @@ app.use(cors(corsOptions));
 const connectDB = require('./Connection/dbConnection');  
 const mainRouter = require('./routers/index'); 
 
-
+// Connect to the database
 connectDB();
 
+// Session middleware - Place it before your routes
+app.use(session({
+    secret: 'your-secret-key',  // Replace with a strong, secret key
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }   // Set to true if using HTTPS
+}));
 
+// Middleware for parsing JSON and url-encoded data
 app.use(bodyParser.json()); 
 app.use(express.json());    
 
 // Define your routes
 app.use('/api', mainRouter); 
 
-
+// Start the server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

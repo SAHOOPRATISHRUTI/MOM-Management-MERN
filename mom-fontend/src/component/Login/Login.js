@@ -36,7 +36,8 @@ function Login() {
 
     try {
       const response = await loginUser(email, password);
-      console.log(response);
+      console.log(response.data.token);
+      localStorage.setItem('authToken', response.data.token);
       
       toast.success(response.message, { autoClose: 2000 });
       setTimeout(() => {

@@ -7,25 +7,27 @@ const bcrypt = require('bcryptjs');
 const Users = require('../model/userModel'); 
 const validator = require('validator');
 const messages = require('../constants/constMessage');
-const jwt = require('jsonwebtoken'); // Ensure you've installed jsonwebtoken
+const jwt = require('jsonwebtoken'); 
+
+
+
 
 const login = async (email, password) => {
     const user = await Users.findOne({ email });
 
     if (!user) {
-        return { emailNotRegistered: true }; // Email not registered
+        return { emailNotRegistered: true }; 
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
-        return { invalidPassword: true }; // Incorrect password
+        return { invalidPassword: true }; 
     }
 
-    // Only generate token if email and password are correct
     const token = jwt.sign(
-        { id: user._id, email: user.email }, // Payload
-        process.env.JWT_USER_SECRET, // Secret key
-        { expiresIn: '1h' } // Token validity (1 hour)
+        { id: user._id, email: user.email }, 
+        process.env.JWT_USER_SECRET, 
+        { expiresIn: '1h' } 
     );
 
     return {
@@ -34,7 +36,7 @@ const login = async (email, password) => {
         email: user.email,
         mobile: user.mobile,
         address: user.address,
-        token // Include token after successful login
+        token 
     };
 };
 
@@ -412,6 +414,44 @@ const verifyOtpForSignUP = async (email, otp) => {
     }
 };
 
+const logoutService = (req) => {
+    return new Promise((resolve, reject) => {
+        try {
+            // Check if the session exists
+            if (!req.session) {
+                console.log('Session does not exist.');
+                return resolve({ error: 'Session not found.' });  
+            }
+
+            // If a token exists, nullify it
+            if (req.session.token) {
+                req.session.token = null;
+                console.log('Token removed from session.');
+            }
+
+            // Destroy the session to log the user out
+            req.session.destroy((err) => {
+                if (err) {
+                    console.error('Error destroying session:', err);
+                    return resolve({ error: 'Failed to logout. Session destruction error.' });  
+                }
+
+           
+                resolve({ message: 'Logout successful. Session cleared.' });  
+            });
+        } catch (error) {
+            console.error('Error during logout operation:', error);
+            reject({ error: 'Internal server error during logout.' });  
+        }
+    });
+};
+
+
+
+
+
+
+
 
 module.exports = {
     login,
@@ -420,5 +460,7 @@ module.exports = {
     verifyOTP,
     sendOtp,
     verifyOtpForSignUP,
-    verifyOtpAndResetPassword
+    verifyOtpAndResetPassword,
+    // logout,
+    logoutService
 }

@@ -1,15 +1,12 @@
-import React from 'react'
-import CustomNavbar from '../NavBar/Navbar';
-import MultiLevelSidebar from '../SideBar/Sidebar';
+import React from 'react';
+import MeetingPage from '../Meeting/Meeting';
 
-function Dashboard() {
-    return (
-        <>
 
-        <CustomNavbar/>
-        <MultiLevelSidebar/>
-        </>
-    )
-}
+const Dashboard = () => {
+ <>
+ <MeetingPage/>
+   <h1>ggggggggggggg</h1>
+ </>
+};
 
 export default Dashboard;

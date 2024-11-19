@@ -11,6 +11,7 @@ import SignUp from './component/SignUp/SignUp';
 import 'react-toastify/dist/ReactToastify.css';
 
 import './App.css';
+import MeetingPage from './component/Meeting/Meeting';
 
 function App() {
   return (
@@ -31,17 +32,11 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/signin" element={<Signin />} />
-        <Route
-          path="/dashboard"
-          element={
-
-            <Dashboard />
-
-          }
-        />
+        {/* //<Route path="/dashboard" element={<Dashboard />}/> */}
         <Route path="/verify-otp" element={<OTPVerification />} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/dashboard" element={<MeetingPage/>}/>
       </Routes>
     </Router>
 

@@ -2,27 +2,34 @@ const jwt = require('jsonwebtoken');
 const Responses = require('../helpers/response');
 
 const authenticateToken = (req, res, next) => {
+    // Retrieve the token from the authorization header
     const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(' ')[1]; // Extract token
+    const token = authHeader && authHeader.split(' ')[1]; // Extract token after 'Bearer'
 
+    // If no token is provided, respond with an error
     if (!token) {
-        console.log('Token missing in request'); // Logging the missing token
-        return Responses.failResponse(req, res, null, 'Token is required for authentication', 401);
+        const errorMessage = 'Token is required for authentication';
+        console.log(`Token missing for request to ${req.method} ${req.url}: ${errorMessage}`);
+        return Responses.failResponse(req, res, null, errorMessage, 401);
     }
 
+    // Verify the token
     try {
-        const verified = jwt.verify(token, process.env.JWT_USER_SECRET); // Verify token
-        req.user = verified; // Attach user data to request
-        next(); // Proceed
+        const verified = jwt.verify(token, process.env.JWT_USER_SECRET); // Verify token using JWT secret
+        req.user = verified; // Attach the decoded user information to the request object
+        next(); // Pass control to the next middleware/controller
     } catch (error) {
-        console.error('Token verification failed:', error); // Logging the error for debugging
+        // Enhanced error logging
+        console.error(`Token verification failed for request to ${req.method} ${req.url}:`, error);
 
+        // Handle specific error cases
         if (error.name === 'TokenExpiredError') {
-            return Responses.failResponse(req, res, null, 'Token has expired', 401); // Handle expired token specifically
+            return Responses.failResponse(req, res, null, 'Token has expired', 401); // Handle expired token case
         }
 
-        return Responses.failResponse(req, res, null, 'Invalid or expired token', 403); // Default invalid token message
+        // Generic error handling for invalid or malformed token
+        return Responses.failResponse(req, res, null, 'Invalid or expired token', 403);
     }
 };
 
-module.exports = {authenticateToken};
+module.exports = { authenticateToken };

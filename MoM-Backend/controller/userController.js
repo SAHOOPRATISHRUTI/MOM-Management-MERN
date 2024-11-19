@@ -273,6 +273,32 @@ const verifyOtpForSignUP = async (req, res) => {
     }
 };
 
+const logoutController = async (req, res) => {
+    try {
+        // Ensure to call the correct logoutService directly and await the result
+        const result = await authService.logoutService(req);
+
+        // Check if result is undefined or null
+        if (!result) {
+            return Responses.failResponse(req, res, null, 'Logout failed: No result from service', 400);
+        }
+
+        // If there's an error in the result, return failure response
+        if (result.error) {
+            return Responses.failResponse(req, res, null, result.error, 400);
+        }
+
+        // If everything is successful, return success response
+        return Responses.successResponse(req, res, result, messages.logoutSuccess || 'Successfully logged out', 200);
+    } catch (error) {
+        // Handle unexpected errors
+        console.error('Error in logout controller:', error);
+        if (!res.headersSent) {
+            return Responses.errorResponse(req, res, error.message || 'Internal server error', 500);
+        }
+    }
+};
+
 
 
 module.exports = {
@@ -282,6 +308,7 @@ module.exports = {
     verifyOtp,
     verifyOtpAndResetPasswordController,
     sendOtp,
-    verifyOtpForSignUP
+    verifyOtpForSignUP,
+    logoutController
 
 };
