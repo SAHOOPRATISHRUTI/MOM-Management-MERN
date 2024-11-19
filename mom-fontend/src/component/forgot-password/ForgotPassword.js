@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import './ForgotPassword.css'; // Create and style this CSS file as needed
-import { Container, Grid, Typography, Box, TextField, Button, Link } from '@mui/material';
+import { Container, Grid, Typography, Box, TextField, IconButton, Button, Link } from '@mui/material';
 import { resetPassword } from '../../services/api'; // Import the API method
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
-import meeting from '../../assets/meeting.png'
+import meeting from '../../assets/meeting.png';
 
 function ForgotPassword() {
   const location = useLocation();
@@ -14,12 +15,14 @@ function ForgotPassword() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const { email } = location.state || {}; 
+  const { email } = location.state || {};
   const navigate = useNavigate();
 
   const handleOtpChange = (index, value) => {
-    if (value.length > 1) return; 
+    if (value.length > 1) return;
     const newOtp = [...Otp];
     newOtp[index] = value;
     setOtp(newOtp);
@@ -36,8 +39,13 @@ function ForgotPassword() {
     const otp = Otp.join('');
 
     // Check if OTP, password and confirmPassword are valid
-    if (!otp || password !== confirmPassword) {
+    if (password !== confirmPassword) {
       setError("Passwords do not match.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long.");
       return;
     }
 
@@ -45,19 +53,18 @@ function ForgotPassword() {
       // Call resetPassword API with OTP and password
       const response = await resetPassword(email, otp, password, confirmPassword);
       toast.success(response.message, { autoClose: 2000 });
-      setTimeout(() => {
-        navigate('/');
-      }, 3000);
-
       if (response.success) {
         setSuccessMessage("Password reset successfully.");
         setError('');
+        setTimeout(() => {
+          navigate('/');
+        }, 3000);
       } else {
         setError("Failed to reset password.");
       }
     } catch (err) {
       console.log('Error:', err);
-      setError(err.message || "An error occurred while resetting the password.");
+      setError(err.response?.data?.message || "An error occurred while resetting the password.");
     }
   };
 
@@ -93,23 +100,41 @@ function ForgotPassword() {
                 </Box>
                 <TextField
                   label="Password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   fullWidth
                   variant="outlined"
                   margin="normal"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
+                  InputProps={{
+                    endAdornment: (
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    ),
+                  }}
                 />
                 <TextField
                   label="Confirm Password"
-                  type="password"
+                  type={showConfirmPassword ? 'text' : 'password'}
                   fullWidth
                   variant="outlined"
                   margin="normal"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
+                  InputProps={{
+                    endAdornment: (
+                      <IconButton
+                        aria-label="toggle confirm password visibility"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    ),
+                  }}
                 />
                 <Button variant="contained" color="primary" fullWidth type="submit" sx={{ marginTop: 2 }}>
                   OTP Verify

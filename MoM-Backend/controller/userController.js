@@ -6,42 +6,45 @@ const validator = require('validator')
 const login = async (req, res) => {
     const { email, password } = req.body;
 
-    // Validate email and password input
+    // Check if both email and password are provided
     if (!email || !password) {
         return Responses.failResponse(req, res, null, messages.emailpasswordRequired, 400);
     }
 
     try {
+        // Call the login service to authenticate user
         const result = await authService.login(email, password);
 
-        // If email is not registered, return this error
+        // Check if email is not registered
         if (result.emailNotRegistered) {
             return Responses.failResponse(req, res, null, messages.emailnotRegister, 400);
         }
 
-        // If incorrect password, return this error
+        // Check if password is incorrect
         if (result.invalidPassword) {
             return Responses.failResponse(req, res, null, messages.incorrectPassword, 401);
         }
 
-        // Return success response with user data
+        // Return successful login response with user data and token
         return Responses.successResponse(req, res, {
+            id: result.id,
             name: result.name,
             email: result.email,
             mobile: result.mobile,
-            address: result.address
+            address: result.address,
+            token: result.token // Include token
         }, 'Login successful', 200);
 
     } catch (error) {
-        console.error('Login error:', error); // Log the error to the console for debugging
+        // Log the error for debugging
+        console.error('Login error:', error);
 
-        // Return a more detailed error message
+        // Send error response with a message and 500 status
         const errorMessage = error.message || 'An unknown error occurred during login';
-
-        // Default error response for login failure
         return Responses.errorResponse(req, res, errorMessage, 500);
     }
-}
+};
+
 
 
 
@@ -123,11 +126,11 @@ const generateOtp = async (req, res) => {
 
 
 
-
 const verifyOtp = async (req, res) => {
     const { email, otp } = req.body;
 
     try {
+        // Check if email and OTP are provided
         if (!email) {
             return Responses.failResponse(req, res, null, messages.emailRequired, 400);
         }
@@ -136,39 +139,47 @@ const verifyOtp = async (req, res) => {
             return Responses.failResponse(req, res, null, messages.otpRequired, 400);
         }
 
+        // Validate email format
         const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
         if (!emailRegex.test(email)) {
             return Responses.failResponse(req, res, null, messages.invalidEmailFormat, 400);
         }
 
+        // Validate OTP format (e.g., 6 digits)
         if (!/^\d{6}$/.test(otp)) {
             return Responses.failResponse(req, res, null, messages.invalidOtpFormat, 400);
         }
 
+        // Call the service to verify the OTP
         const result = await authService.verifyOTP(email, otp);
 
-        if (result.success === false) {
-            
+        if (!result.success) {
+            // Handle OTP verification failure
             if (result.invalidOtp) {
                 return Responses.failResponse(req, res, null, messages.invalidOtp, 400);
             }
             if (result.message) {
-                return Responses.failResponse(req, res, null, messages.otpExpired, 400);
+                return Responses.failResponse(req, res, null, result.message, 400);
             }
-
-            
         }
 
+        // If OTP is verified successfully, return the token
         if (result.success && result.verified) {
-            return Responses.successResponse(req, res, result, messages.otpVerificationSuccess, 200);
+            return Responses.successResponse(req, res, {
+                token: result.token // The token is already included in the service response
+            }, messages.otpVerificationSuccess, 200);
         }
 
+        // If OTP verification failed for some reason
         return Responses.failResponse(req, res, null, messages.otpVerificationFailed, 400);
 
     } catch (error) {
+        console.error('Error during OTP verification:', error);
         return Responses.errorResponse(req, res, error);
     }
 };
+
+
 
 
 const verifyOtpAndResetPasswordController = async (req, res) => {

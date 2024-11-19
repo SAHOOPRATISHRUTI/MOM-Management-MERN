@@ -7,24 +7,37 @@ const bcrypt = require('bcryptjs');
 const Users = require('../model/userModel'); 
 const validator = require('validator');
 const messages = require('../constants/constMessage');
-
-
+const jwt = require('jsonwebtoken'); // Ensure you've installed jsonwebtoken
 
 const login = async (email, password) => {
-   
-    const user = await Users.findOne({ email });//check this email id present or not
+    const user = await Users.findOne({ email });
 
     if (!user) {
-        throw new Error(messages.registerplz); // if not register send this msg in console
+        return { emailNotRegistered: true }; // Email not registered
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    
     if (!isPasswordCorrect) {
-        throw new Error(messages.incorrectPassword);//checkpassword is correct or not
+        return { invalidPassword: true }; // Incorrect password
     }
-    return user;  
-}
+
+    // Only generate token if email and password are correct
+    const token = jwt.sign(
+        { id: user._id, email: user.email }, // Payload
+        process.env.JWT_USER_SECRET, // Secret key
+        { expiresIn: '1h' } // Token validity (1 hour)
+    );
+
+    return {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        mobile: user.mobile,
+        address: user.address,
+        token // Include token after successful login
+    };
+};
+
 
 
 const signup = async (name,  email,phone,password, address,role,otp ) => {
@@ -142,6 +155,7 @@ const generateAndSaveOtp = async (email) => {
 
 const verifyOTP = async (email, otp) => {
     try {
+        // Check if email and OTP are provided
         if (!email || !otp) {
             return { success: false, message: 'Email and OTP are required' };
         }
@@ -159,7 +173,7 @@ const verifyOTP = async (email, otp) => {
 
         // Check if OTP has expired using expiresAt
         if (expiresAt && currentTime > expiresAt) {  // Ensure expiresAt exists before checking
-            await OTP.deleteOne({ email });  // Delete expired OTP record
+            await OTP.deleteOne({ email });  // Delete expired OTP record from OTP collection
             return { success: false, message: 'OTP has expired. Please request a new one.' };
         }
 
@@ -167,7 +181,7 @@ const verifyOTP = async (email, otp) => {
         if (otpRecord.otpAttempts >= 3) {
             // Reset OTP after 30 minutes (1800000 ms)
             const resetTime = otpRecord.otpAttemptResetTime ? otpRecord.otpAttemptResetTime.getTime() : null;
-            
+
             // If 30 minutes have passed, reset OTP attempts and allow another OTP verification
             if (resetTime && currentTime - resetTime > 1800000) {  // 30 minutes in ms
                 otpRecord.otpAttempts = 0;  // Reset OTP attempts
@@ -192,7 +206,11 @@ const verifyOTP = async (email, otp) => {
         otpRecord.otpAttempts = 0;  // Reset OTP attempts after successful verification
         await otpRecord.save();
 
-        return { success: true, verified: true, message: 'OTP verified successfully' };
+        // Generate JWT Token after OTP verification
+        const payload = { email: otpRecord.email, userId: otpRecord._id };  // JWT payload
+        const token = jwt.sign(payload,process.env.JWT_USER_SECRET, { expiresIn: '1h' });  // Set an expiration time for the token (e.g., 1 hour)
+
+        return { success: true, verified: true, message: 'OTP verified successfully', token };
     } catch (error) {
         console.error('Error during OTP verification:', error);
         return { success: false, message: error.message || 'Internal server error' };

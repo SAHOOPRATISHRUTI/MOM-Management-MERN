@@ -3,13 +3,14 @@ import './Login.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { loginUser } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
-import { TextField, Button, Container, Grid, Typography, Box, FormControlLabel, Checkbox } from '@mui/material';
-import { ToastContainer, toast } from 'react-toastify';
+import { TextField, Button, Container, Grid, Typography, Box, FormControlLabel, Checkbox, IconButton } from '@mui/material';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom';
 import { validateEmail, validatePassword } from '../../validator/validator';
-import { generateOTP } from '../../services/api'; // Import the generateOTP function
+import { generateOTP } from '../../services/api'; 
 import meeting from '../../assets/meeting.png'
+import { Visibility, VisibilityOff } from '@mui/icons-material'; 
 
 function Login() {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ function Login() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-
+  const [showPassword, setShowPassword] = useState(false); 
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -95,15 +96,25 @@ function Login() {
                 <div className="form-group">
                   <TextField
                     label="Password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     variant="outlined"
                     fullWidth
                     margin="normal"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    required
+                    
                     error={!!errorMessage && !validatePassword(password)}
                     helperText={!!errorMessage && !validatePassword(password) && 'Password must be at least 8 characters long.'}
+                    InputProps={{
+                      endAdornment: (
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => setShowPassword(!showPassword)} 
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />} {/* Show/hide eye icon */}
+                        </IconButton>
+                      ),
+                    }}
                   />
                 </div>
 
