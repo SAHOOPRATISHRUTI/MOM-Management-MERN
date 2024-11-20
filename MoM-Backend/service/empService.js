@@ -4,7 +4,7 @@ const OTP_EXPIRATION_TIME = 5 * 60 * 1000;
 const MAX_REQUESTS = 3; 
 const MAX_OTP_ATTEMPTS =3;
 const bcrypt = require('bcryptjs');  
-const Users = require('../model/userModel'); 
+const EmployeeUser = require('../model/employeeModel'); 
 const validator = require('validator');
 const messages = require('../constants/constMessage');
 const jwt = require('jsonwebtoken'); 
@@ -13,7 +13,7 @@ const jwt = require('jsonwebtoken');
 
 
 const login = async (email, password) => {
-    const user = await Users.findOne({ email });
+    const user = await EmployeeUser.findOne({ email });
 
     if (!user) {
         return { emailNotRegistered: true }; 
@@ -32,7 +32,7 @@ const login = async (email, password) => {
 
     return {
         id: user._id,
-        name: user.name,
+        employeeName: user.employeeName,
         email: user.email,
         mobile: user.mobile,
         address: user.address,
@@ -42,7 +42,7 @@ const login = async (email, password) => {
 
 
 
-const signup = async (name,  email,phone,password, address,role,otp ) => {
+const signup = async (employeeName,  email,phone,password, address,role,otp ) => {
 
     if (!validator.isEmail(email)) {
         throw new Error('Invalid email format');
@@ -62,15 +62,15 @@ const signup = async (name,  email,phone,password, address,role,otp ) => {
     }
 
     
-    const existingUser = await Users.findOne({ $or: [{ email }, { phone }] });
+    const existingUser = await EmployeeUser.findOne({ $or: [{ email }, { phone }] });
     if (existingUser) {
         throw new Error('User already exists with the given email or mobile number');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = new Users({
-        name,  email,phone,password: hashedPassword,role,address,otp,
+    const newUser = new EmployeeUser({
+        employeeName,  email,phone,password: hashedPassword,role,address,otp,
         otpExpiry: Date.now() + 10 * 60 * 1000,
         
     });
@@ -81,7 +81,7 @@ const signup = async (name,  email,phone,password, address,role,otp ) => {
     return {
         message: 'User registered successfully!',
         user: {
-            name: newUser.name,
+            employeeName: newUser.employeeName,
             mobile: newUser.phone,
             email: newUser.email,
             address: newUser.address
@@ -90,20 +90,20 @@ const signup = async (name,  email,phone,password, address,role,otp ) => {
 };
 
 const generateAndSaveOtp = async (email) => {
-    const user = await Users.findOne({ email });
+    const user = await EmployeeUser.findOne({ email });
 
     if (!user) {
         return { emailNotRegistered: true };
     }
 
     const now = Date.now(); 
-    let otpRecord = await Users.findOne({ email });  // Make sure OTP is queried from the OTP collection
+    let otpRecord = await EmployeeUser.findOne({ email });  // Make sure OTP is queried from the OTP collection
 
     const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // If OTP record doesn't exist, create a new one
     if (!otpRecord) {
-        otpRecord = new Users({
+        otpRecord = new user({
             email,
             otp: newOtp,
             otpAttempts: 1,
@@ -162,8 +162,8 @@ const verifyOTP = async (email, otp) => {
             return { success: false, message: 'Email and OTP are required' };
         }
 
-        // Find the OTP record for the email using the Users model
-        const otpRecord = await Users.findOne({ email });
+        // Find the OTP record for the email using the user model
+        const otpRecord = await EmployeeUser.findOne({ email });
         if (!otpRecord) {
             return { success: false, message: 'No OTP record found for this email' };
         }
@@ -239,7 +239,7 @@ const verifyOtpAndResetPassword = async (email, otp, password, confirmPassword) 
         console.log('New Password (Plain):', password);
 
         // Find the user by email
-        const user = await Users.findOne({ email });
+        const user = await EmployeeUser.findOne({ email });
         
         // Check if user exists
         if (!user) {
@@ -302,7 +302,7 @@ const sendOtp = async (email) => {
             return { success: false, message: 'Invalid email format' }; 
         }
 
-        const user = await Users.findOne({ email });
+        const user = await EmployeeUser.findOne({ email });
         if (user) {
             return { success: false, message: 'This email ID is already registered' }; d
         }
@@ -446,6 +446,75 @@ const logoutService = (req) => {
     });
 };
 
+const createEmployee = async (data) => {
+    try {
+        if (!data.email) {
+            throw new Error('Email is required');
+        }
+
+        const emailDetails = await checkDuplicateEmail(data.email);
+        
+        if (emailDetails) {
+            return { isDuplicateEmail: true };
+        }
+
+        const inputData = {
+            employeeName: data.employeeName,
+            employeeId: data.employeeId,
+            email: data.email,
+            designation: data.designation,
+            department: data.department,
+            unit: data.unit,
+        };
+
+        const empData = new EmployeeUser(inputData);
+        const result = await empData.save();
+        return result;
+    } catch (error) {
+        console.error('Error creating employee:', error);
+        throw new Error('Error creating employee');
+    }
+}
+
+
+const checkDuplicateEmail = async (email) => {
+    try {
+        const employee = await EmployeeUser.findOne(
+            { email, isActive: true },
+            { _id: 1, email: 1, employeeName: 1, isActive: 1 }
+        );
+        return employee;
+    } catch (error) {
+        console.error('Error checking duplicate email:', error);
+        throw new Error('Error checking duplicate email');
+    }
+}
+const listEmployee = async (filters = {}, page = 1, limit = 10) => {
+    try {
+        const skip = (page - 1) * limit;
+        
+        // Apply filters for active employees if needed
+        const query = { isActive: true, ...filters };
+
+        // Fetch employees with pagination
+        const employees = await EmployeeUser.find(query)
+            .skip(skip)
+            .limit(limit)
+            .select('_id employeeName employeeId email designation department unit isActive');
+
+        // Get total count of employees to calculate total pages
+        const totalEmployees = await EmployeeUser.countDocuments(query);
+
+        // Calculate total pages for pagination
+        const totalPages = Math.ceil(totalEmployees / limit);
+
+        return { employees, totalEmployees, totalPages };
+    } catch (error) {
+        console.error('Error fetching employees:', error);
+        throw new Error('Error fetching employees');
+    }
+}
+
 
 
 
@@ -461,6 +530,7 @@ module.exports = {
     sendOtp,
     verifyOtpForSignUP,
     verifyOtpAndResetPassword,
-    // logout,
-    logoutService
+    logoutService,
+    createEmployee,
+    listEmployee
 }

@@ -1,4 +1,4 @@
-const authService = require('../service/userService');
+const authService = require('../service/empService');
 const Responses = require('../helpers/response');
 const messages = require('../constants/constMessage');
 const validator = require('validator')
@@ -28,7 +28,7 @@ const login = async (req, res) => {
         // Return successful login response with user data and token
         return Responses.successResponse(req, res, {
             id: result.id,
-            name: result.name,
+            employeeName: result.employeeName,
             email: result.email,
             mobile: result.mobile,
             address: result.address,
@@ -49,11 +49,11 @@ const login = async (req, res) => {
 
 
 const signup = async (req, res) => {
-    const { name, email, phone, password, address, role } = req.body;
+    const { employeeName, email, phone, password, address, role } = req.body;
 
     try {
         // Validate input fields
-        if (!name) {
+        if (!employeeName) {
             return Responses.failResponse(req, res, null, messages.nameisrequired, 400);
         }
         if (!email || !validator.isEmail(email)) {
@@ -67,13 +67,13 @@ const signup = async (req, res) => {
         }
 
 
-        const mobilePattern = /^[0-9]{10}$/;
-        if (!mobilePattern.test(phone)) {
-            return Responses.failResponse(req, res, null, messages.invalidMobile, 400);
-        }
+        // const mobilePattern = /^[0-9]{10}$/;
+        // if (!mobilePattern.test(phone)) {
+        //     return Responses.failResponse(req, res, null, messages.invalidMobile, 400);
+        // }
 
 
-        const result = await authService.signup(name, email, phone, password, address, role);
+        const result = await authService.signup(employeeName, email, phone, password, address, role);
 
 
         if (result.existingUser) {
@@ -82,7 +82,7 @@ const signup = async (req, res) => {
 
 
         return Responses.successResponse(req, res, {
-            name, email, phone, address, role
+            employeeName, email, phone, address, role
         }, messages.signupSuccess, 200);
     } catch (error) {
         console.error('Error during signup:', error);
@@ -285,6 +285,43 @@ const logoutController = async (req, res) => {
     }
 };
 
+const createEmployee = async (req, res) => {
+    try {
+        const result = await authService.createEmployee(req.body);
+        console.log(result);
+        if (result?.isDuplicateEmail) {
+            return Responses.failResponse(req, res, null, messages.duplicateEmail, 200);
+        }
+        return Responses.successResponse(req, res, result, messages.createdSucess, 201);
+    } catch (error) {
+        console.log(error);
+        return Responses.errorResponse(req, res, error.message);
+    }
+};
+
+const listEmployee = async (req, res) => {
+    try {
+        // Retrieve query params for filters, pagination, etc.
+        const { page = 1, limit = 10, designation, department, unit } = req.query;
+
+        // Create filter object based on query params
+        const filters = {};
+        if (designation) filters.designation = designation;
+        if (department) filters.department = department;
+        if (unit) filters.unit = unit;
+
+        // Call the service to get the list of employees
+        const result = await authService.listEmployee(filters, parseInt(page), parseInt(limit));
+
+        return Responses.successResponse(req, res, result, messages.fetchedSuccessfully, 200);
+    } catch (error) {
+        console.log(error);
+        return Responses.errorResponse(req, res, error.message);
+    }
+};
+
+
+
 
 
 module.exports = {
@@ -295,6 +332,8 @@ module.exports = {
     verifyOtpAndResetPasswordController,
     sendOtp,
     verifyOtpForSignUP,
-    logoutController
+    logoutController,
+    createEmployee,
+    listEmployee
 
 };

@@ -120,7 +120,7 @@ function Login() {
                 </div>
 
                 <div className="form-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <FormControlLabel
+                  {/* <FormControlLabel
                     control={
                       <Checkbox
                         checked={rememberMe}
@@ -129,9 +129,9 @@ function Login() {
                       />
                     }
                     label="Remember me"
-                  />
+                  /> */}
                   <Button
-                    onClick={handleForgotPassword} // Trigger the forgot password functionality
+                    onClick={handleForgotPassword} 
                     style={{ textDecoration: 'none', color: '#3f51b5' }}
                   >
                     Forgot Password

@@ -3,7 +3,7 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const session = require('express-session'); e
+const session = require('express-session');
 const PORT = process.env.PORT || 5555;
 
 const corsOptions = {

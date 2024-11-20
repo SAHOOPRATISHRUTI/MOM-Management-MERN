@@ -1,6 +1,9 @@
 const jwt = require('jsonwebtoken');
-const Responses = require('../helpers/response');
+const Response = require('../helpers/response'); // assuming you have a response helper
+const employeeService = require('../service/empService'); // assuming employee service for DB checks
+const message = require('../constants/constMessage'); // assuming message constants for error messages
 
+// Middleware to authenticate token
 const authenticateToken = (req, res, next) => {
     // Retrieve the token from the authorization header
     const authHeader = req.headers.authorization;
@@ -10,7 +13,7 @@ const authenticateToken = (req, res, next) => {
     if (!token) {
         const errorMessage = 'Token is required for authentication';
         console.log(`Token missing for request to ${req.method} ${req.url}: ${errorMessage}`);
-        return Responses.failResponse(req, res, null, errorMessage, 401);
+        return Response.failResponse(req, res, null, errorMessage, 401);
     }
 
     // Verify the token
@@ -24,12 +27,16 @@ const authenticateToken = (req, res, next) => {
 
         // Handle specific error cases
         if (error.name === 'TokenExpiredError') {
-            return Responses.failResponse(req, res, null, 'Token has expired', 401); // Handle expired token case
+            return Response.failResponse(req, res, null, 'Token has expired', 401); // Handle expired token case
         }
 
         // Generic error handling for invalid or malformed token
-        return Responses.failResponse(req, res, null, 'Invalid or expired token', 403);
+        return Response.failResponse(req, res, null, 'Invalid or expired token', 403);
     }
 };
 
-module.exports = { authenticateToken };
+
+module.exports = {
+    authenticateToken,
+ 
+};

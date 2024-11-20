@@ -25,7 +25,7 @@ export default function HorizontalLinearStepper() {
   const navigate = useNavigate();
 
   // Step 1 inputs
-  const [name, setName] = React.useState('');
+  const [employeeName, setemployeeName] = React.useState('');
   const [phone, setPhone] = React.useState('');
 
   // Step 2 inputs
@@ -37,7 +37,7 @@ export default function HorizontalLinearStepper() {
   const [password, setPassword] = React.useState('');
 
   // Error states
-  const [nameError, setNameError] = React.useState('');
+  const [employeeNameError, setemployeeNameError] = React.useState('');
   const [phoneError, setPhoneError] = React.useState('');
   const [emailError, setEmailError] = React.useState('');
   const [addressError, setAddressError] = React.useState('');
@@ -62,11 +62,11 @@ export default function HorizontalLinearStepper() {
 
     // Step 1 - Personal Information validation
     if (activeStep === 0) {
-      if (!name || name.length < 3) {
-        setNameError('Name must be at least 3 characters.');
+      if (!employeeName || employeeName.length < 3) {
+        setemployeeNameError('EmployeeName must be at least 3 characters.');
         hasError = true;
       } else {
-        setNameError('');
+        setemployeeNameError('');
       }
       if (!phone || !/^\d{10}$/.test(phone)) {
         setPhoneError('Phone number must be 10 digits.');
@@ -158,7 +158,7 @@ export default function HorizontalLinearStepper() {
 
   const handleSubmit = async () => {
     try {
-      const response = await signupUser(name, email, phone, password, address, role); // Assume signupUser function exists
+      const response = await signupUser(employeeName, email, phone, password, address, role); // Assume signupUser function exists
       toast.success(response.message); 
       setTimeout(() => {
         navigate('/'); 
@@ -171,15 +171,15 @@ export default function HorizontalLinearStepper() {
   const handleChange = (event, type) => {
     const value = event.target.value;
   
-    if (type === 'name') {
-      setName(value);
+    if (type === 'employeeName') {
+      setemployeeName(value);
       // Check if name is empty or less than 4 characters
       if (!value) {
-        setNameError('This field is required');
+        setemployeeNameError('This field is required');
       } else if (value.length <= 3) {
-        setNameError('Name must be greater than 3 characters');
+        setemployeeNameError('employeeName must be greater than 3 characters');
       } else {
-        setNameError('');
+        setemployeeNameError('');
       }
     }
   
@@ -252,10 +252,10 @@ export default function HorizontalLinearStepper() {
                 label="Name"
                 fullWidth
                 variant="outlined"
-                value={name}
-                onChange={(e) =>handleChange(e, 'name')}
-                error={Boolean(nameError)}
-                helperText={nameError}
+                value={employeeName}
+                onChange={(e) =>handleChange(e, 'employeeName')}
+                error={Boolean(employeeNameError)}
+                helperText={employeeNameError}
                 sx={{ mt: 2 }}
                 InputProps={{
                   startAdornment: (

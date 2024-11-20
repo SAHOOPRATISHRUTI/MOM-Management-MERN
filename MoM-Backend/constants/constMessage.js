@@ -62,7 +62,9 @@ const messages = {
     emailAlreadyRegistered:"This email id is already register Please enter a new email id",
     confirmPasswordRequired:"Confirm Password Required",
     registerplz:'Invalid email address. Please register first.',
-    logoutSuccess:'Logout Sucessfully'
+    logoutSuccess:'Logout Sucessfully',
+    invalidTokenFormat:'Invalid Token Format',
+    createdSucess:'Employee Create sucessfully'
 };
 
 module.exports = messages;
