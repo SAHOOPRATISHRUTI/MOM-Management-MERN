@@ -23,25 +23,35 @@ function Login() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setErrorMessage('');
-
+  
     if (!email || !validateEmail(email)) {
       setErrorMessage('Please enter a valid email address.');
       return;
     }
-
+  
     if (!password || !validatePassword(password)) {
       setErrorMessage('Password must be at least 8 characters long.');
       return;
     }
-
+  
     try {
       const response = await loginUser(email, password);
       console.log(response.data.token);
+
       localStorage.setItem('authToken', response.data.token);
-      
+  
+      // Assuming `response.data.role` contains the user's role
+      const userRole = response.data.role;
+      console.log(userRole)
+  
       toast.success(response.message, { autoClose: 2000 });
+  
       setTimeout(() => {
-        navigate('/dashboard');
+        if (userRole === 'user') {
+          navigate('/user-dashboard'); // Navigate to the User Dashboard
+        } else {
+          navigate('/dashboard'); // Navigate to the default dashboard
+        }
       }, 3000);
       console.log(email);
       
@@ -50,6 +60,7 @@ function Login() {
       setErrorMessage(error.message || 'An unexpected error occurred. Please try again.');
     }
   };
+  
 
   const handleForgotPassword = async () => {
     if (!email || !validateEmail(email)) {

@@ -6,7 +6,7 @@ import Login from './component/Login/Login';
 import ForgotPassword from './component/forgot-password/ForgotPassword';
 import Signin from './component/sign-in-OTP/Signin';
 import OTPVerification from './component/Verify-Otp/Verify-Otp';
-import Dashboard from './component/Dashboard/Dashboard';
+import UserDashboard from './component/Dashboard/UserDashboard';
 import SignUp from './component/SignUp/SignUp';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -32,7 +32,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/signin" element={<Signin />} />
-        {/* //<Route path="/dashboard" element={<Dashboard />}/> */}
+        <Route path="/user-dashboard" element={<UserDashboard />}/>
         <Route path="/verify-otp" element={<OTPVerification />} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

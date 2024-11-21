@@ -239,6 +239,53 @@ const addEmployee = async (employeeName, employeeId, email, designation, departm
   }
 };
 
+const listEmployee = async (filters = {}, page = 1, limit = 10) => {
+  try {
+    console.log("Sending request to list employees with filters:", filters, "page:", page, "limit:", limit);
+
+    // Prepare query parameters
+    const params = {
+      ...filters,
+      page,
+      limit
+    };
+
+    // Send GET request to fetch employees with pagination and filters
+    const response = await axios.get(`${API_URL}/employees`, { params, headers: { 
+      Authorization: `Bearer ${localStorage.getItem('authToken')}` // Use token for authenticated requests
+    } });
+
+    // Log and return the server response
+    console.log('Employees fetched successfully:', response.data);
+   // console.log("Employees:", response.data.data.employees);
+    return response.data;
+    
+    
+  } catch (error) {
+    // Improved error handling
+    if (error.response) {
+      console.error('Server Error:', error.response.data.message);
+      throw new Error(error.response.data.message || 'Failed to fetch employees');
+    } else if (error.request) {
+      console.error('No response from server:', error.request);
+      throw new Error('No response from server');
+    } else {
+      console.error('Error during request:', error.message);
+      throw new Error('An error occurred while fetching employees');
+    }
+  }
+};
 
 
-export { loginUser, generateOTP, verifyOTP, signupUser, sendOtp, verifyOtpforSignUp ,resetPassword,logoutUser,addEmployee};
+
+export { loginUser,
+         generateOTP,
+         verifyOTP, 
+         signupUser, 
+         sendOtp, 
+         verifyOtpforSignUp,
+         resetPassword,
+         logoutUser,
+         addEmployee,
+         listEmployee
+        };

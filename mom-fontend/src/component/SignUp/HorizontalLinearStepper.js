@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import CircularProgress from '@mui/material/CircularProgress';
 import { sendOtp, verifyOtpforSignUp, signupUser } from '../../services/api';
+import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 
 const steps = ['Personal Information', 'Contact Information', 'Create Password'];
 
@@ -43,8 +44,8 @@ export default function HorizontalLinearStepper() {
   const [addressError, setAddressError] = React.useState('');
   const [passwordError, setPasswordError] = React.useState('');
 
-    // Email Verified state
-    const [emailVerified, setEmailVerified] = React.useState(false);
+  // Email Verified state
+  const [emailVerified, setEmailVerified] = React.useState(false);
 
   // OTP states
   const [otp, setOtp] = React.useState('');
@@ -105,6 +106,10 @@ export default function HorizontalLinearStepper() {
       } else {
         setPasswordError('');
       }
+      if (!role) {
+        toast.warn('Role is required.');
+        hasError = true;
+      }
     }
 
     if (hasError) return;
@@ -126,7 +131,7 @@ export default function HorizontalLinearStepper() {
       const response = await sendOtp(email)
       toast.success(response.success.message);
       console.log(response.success.message);
-      
+
       setOtpSent(true);
       setOtpSentMessage(true);
       setLoading(false);
@@ -143,10 +148,10 @@ export default function HorizontalLinearStepper() {
 
   const handleVerifyOtp = async () => {
     try {
-      const response = await verifyOtpforSignUp(email, otp); 
+      const response = await verifyOtpforSignUp(email, otp);
       if (response.success) {
         setOtpVerified(true);
-        toast.success(response.message); 
+        toast.success(response.message);
       } else {
         toast.error(response.message);
       }
@@ -158,19 +163,24 @@ export default function HorizontalLinearStepper() {
 
   const handleSubmit = async () => {
     try {
-      const response = await signupUser(employeeName, email, phone, password, address, role); // Assume signupUser function exists
-      toast.success(response.message); 
-      setTimeout(() => {
-        navigate('/'); 
-      }, 3000);
+      const response = await signupUser(employeeName, email, phone, password, address, role);
+      if (response.success) {
+        toast.success(response.message);
+        setTimeout(() => {
+          navigate('/');
+        }, 3000);
+      } else {
+        toast.error(response.message);
+      }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message || 'An unexpected error occurred');
     }
   };
 
+
   const handleChange = (event, type) => {
     const value = event.target.value;
-  
+
     if (type === 'employeeName') {
       setemployeeName(value);
       // Check if name is empty or less than 4 characters
@@ -182,7 +192,7 @@ export default function HorizontalLinearStepper() {
         setemployeeNameError('');
       }
     }
-  
+
     if (type === 'phone') {
       setPhone(value);
       // Check if phone number is empty or not 10 characters
@@ -194,7 +204,7 @@ export default function HorizontalLinearStepper() {
         setPhoneError('');
       }
     }
-  
+
     if (type === 'email') {
       setEmail(value);
       // Check if email is valid
@@ -204,7 +214,7 @@ export default function HorizontalLinearStepper() {
         setEmailError('Invalid email address');
       }
     }
-  
+
     if (type === 'address') {
       setAddress(value);
       // Check if address is empty
@@ -214,7 +224,7 @@ export default function HorizontalLinearStepper() {
         setAddressError('');
       }
     }
-  
+
     if (type === 'password') {
       setPassword(value);
       // Check if password is at least 8 characters
@@ -225,7 +235,7 @@ export default function HorizontalLinearStepper() {
       }
     }
   };
-  
+
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -253,7 +263,7 @@ export default function HorizontalLinearStepper() {
                 fullWidth
                 variant="outlined"
                 value={employeeName}
-                onChange={(e) =>handleChange(e, 'employeeName')}
+                onChange={(e) => handleChange(e, 'employeeName')}
                 error={Boolean(employeeNameError)}
                 helperText={employeeNameError}
                 sx={{ mt: 2 }}
@@ -270,7 +280,7 @@ export default function HorizontalLinearStepper() {
                 fullWidth
                 variant="outlined"
                 value={phone}
-                onChange={(e) =>handleChange(e, 'phone')}
+                onChange={(e) => handleChange(e, 'phone')}
                 error={Boolean(phoneError)}
                 helperText={phoneError}
                 sx={{ mt: 2 }}
@@ -292,7 +302,7 @@ export default function HorizontalLinearStepper() {
                 fullWidth
                 variant="outlined"
                 value={email}
-                onChange={(e) =>handleChange(e, 'email')}
+                onChange={(e) => handleChange(e, 'email')}
                 error={Boolean(emailError)}
                 helperText={emailError}
                 sx={{ mt: 2 }}
@@ -331,7 +341,7 @@ export default function HorizontalLinearStepper() {
                 fullWidth
                 variant="outlined"
                 value={address}
-                onChange={(e) =>handleChange(e, 'address')}
+                onChange={(e) => handleChange(e, 'address')}
                 error={Boolean(addressError)}
                 helperText={addressError}
                 sx={{ mt: 2 }}
@@ -345,26 +355,40 @@ export default function HorizontalLinearStepper() {
               />
             </>
           )}
-
           {activeStep === 2 && (
-            <TextField
-              label="Password"
-              type="password"
-              fullWidth
-              variant="outlined"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              error={Boolean(passwordError)}
-              helperText={passwordError}
-              sx={{ mt: 2 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon />
-                  </InputAdornment>
-                ),
-              }}
-            />
+            <>
+              <TextField
+                label="Password"
+                type="password"
+                fullWidth
+                variant="outlined"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                error={Boolean(passwordError)}
+                helperText={passwordError}
+                sx={{ mt: 2 }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              {/* Dropdown for User Role (User/Admin) - Only show in Step 2 */}
+              <FormControl fullWidth sx={{ mt: 2 }}>
+                <InputLabel id="role-select-label">Role</InputLabel>
+                <Select
+                  labelId="role-select-label"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  label="Role"
+                >
+                  <MenuItem value="user">User</MenuItem>
+                  <MenuItem value="admin">Admin</MenuItem>
+                </Select>
+              </FormControl>
+            </>
           )}
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>

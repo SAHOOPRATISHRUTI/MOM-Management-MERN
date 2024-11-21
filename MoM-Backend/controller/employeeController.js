@@ -32,6 +32,7 @@ const login = async (req, res) => {
             email: result.email,
             mobile: result.mobile,
             address: result.address,
+            role:result.role,
             token: result.token // Include token
         }, 'Login successful', 200);
 
@@ -49,7 +50,7 @@ const login = async (req, res) => {
 
 
 const signup = async (req, res) => {
-    const { employeeName, email, phone, password, address, role } = req.body;
+    const { employeeName, email, phone, password, address, role,updatedAt } = req.body;
 
     try {
         // Validate input fields
@@ -73,7 +74,7 @@ const signup = async (req, res) => {
         // }
 
 
-        const result = await authService.signup(employeeName, email, phone, password, address, role);
+        const result = await authService.signup(employeeName, email, phone, password, address, role,updatedAt);
 
 
         if (result.existingUser) {
@@ -82,8 +83,9 @@ const signup = async (req, res) => {
 
 
         return Responses.successResponse(req, res, {
-            employeeName, email, phone, address, role
+            employeeName, email, phone, address, role, updatedAt: result.user.updatedAt
         }, messages.signupSuccess, 200);
+        
     } catch (error) {
         console.error('Error during signup:', error);
 
@@ -299,19 +301,21 @@ const createEmployee = async (req, res) => {
     }
 };
 
+
 const listEmployee = async (req, res) => {
     try {
         // Retrieve query params for filters, pagination, etc.
-        const { page = 1, limit = 10, designation, department, unit } = req.query;
+        const { page = 1, limit = 10, designation, department, unit, updatedAt, order = '-1' } = req.query;
 
         // Create filter object based on query params
         const filters = {};
         if (designation) filters.designation = designation;
         if (department) filters.department = department;
         if (unit) filters.unit = unit;
+        if (updatedAt) filters.updatedAt = updatedAt;  // Handle filtering by updatedAt
 
-        // Call the service to get the list of employees
-        const result = await authService.listEmployee(filters, parseInt(page), parseInt(limit));
+        // Call the service to get the list of employees, passing the order parameter
+        const result = await authService.listEmployee(filters, parseInt(page), parseInt(limit), order);
 
         return Responses.successResponse(req, res, result, messages.fetchedSuccessfully, 200);
     } catch (error) {
@@ -319,6 +323,7 @@ const listEmployee = async (req, res) => {
         return Responses.errorResponse(req, res, error.message);
     }
 };
+
 
 
 

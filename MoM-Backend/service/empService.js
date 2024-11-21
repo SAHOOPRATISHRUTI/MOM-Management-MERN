@@ -36,14 +36,15 @@ const login = async (email, password) => {
         email: user.email,
         mobile: user.mobile,
         address: user.address,
+        role:user.role,
         token 
     };
 };
 
 
 
-const signup = async (employeeName,  email,phone,password, address,role,otp ) => {
-
+const signup = async (employeeName, email, phone, password, address, role, otp, updatedAt) => {
+    // Validation checks
     if (!validator.isEmail(email)) {
         throw new Error('Invalid email format');
     }
@@ -53,7 +54,6 @@ const signup = async (employeeName,  email,phone,password, address,role,otp ) =>
         throw new Error('Invalid mobile number format');
     }
 
- 
     if (typeof password !== 'string') {
         password = String(password);
     }
@@ -61,7 +61,6 @@ const signup = async (employeeName,  email,phone,password, address,role,otp ) =>
         throw new Error('Password should be at least 6 characters long');
     }
 
-    
     const existingUser = await EmployeeUser.findOne({ $or: [{ email }, { phone }] });
     if (existingUser) {
         throw new Error('User already exists with the given email or mobile number');
@@ -70,24 +69,26 @@ const signup = async (employeeName,  email,phone,password, address,role,otp ) =>
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new EmployeeUser({
-        employeeName,  email,phone,password: hashedPassword,role,address,otp,
-        otpExpiry: Date.now() + 10 * 60 * 1000,
-        
+        employeeName, email, phone, password: hashedPassword, role, address, otp,
+        otpExpiry: Date.now() + 10 * 60 * 1000
     });
 
     await newUser.save();
 
-    
+    // Return the user data along with updatedAt (this will be managed by MongoDB)
     return {
         message: 'User registered successfully!',
         user: {
             employeeName: newUser.employeeName,
             mobile: newUser.phone,
             email: newUser.email,
-            address: newUser.address
+            address: newUser.address,
+            role: newUser.role,
+            updatedAt: newUser.updatedAt  // The automatically set updatedAt
         }
     };
 };
+
 
 const generateAndSaveOtp = async (email) => {
     const user = await EmployeeUser.findOne({ email });
@@ -489,18 +490,26 @@ const checkDuplicateEmail = async (email) => {
         throw new Error('Error checking duplicate email');
     }
 }
-const listEmployee = async (filters = {}, page = 1, limit = 10) => {
+
+const listEmployee = async (filters = {}, page = 1, limit = 10, order = '1') => {
     try {
         const skip = (page - 1) * limit;
-        
+
         // Apply filters for active employees if needed
         const query = { isActive: true, ...filters };
 
-        // Fetch employees with pagination
+        // Handle sorting based on 'order'
+        let sortOrder = 1; // Default is ascending order
+        if (order === '-1') {
+            sortOrder = -1; // Descending order if -1
+        }
+
+        // Fetch employees with pagination and sorting by updatedAt (or any other field)
         const employees = await EmployeeUser.find(query)
             .skip(skip)
             .limit(limit)
-            .select('_id employeeName employeeId email designation department unit isActive');
+            .select('_id employeeName employeeId email designation department unit isActive updatedAt')
+            .sort({ updatedAt: sortOrder }); // Sort by updatedAt field
 
         // Get total count of employees to calculate total pages
         const totalEmployees = await EmployeeUser.countDocuments(query);
@@ -513,7 +522,8 @@ const listEmployee = async (filters = {}, page = 1, limit = 10) => {
         console.error('Error fetching employees:', error);
         throw new Error('Error fetching employees');
     }
-}
+};
+
 
 
 

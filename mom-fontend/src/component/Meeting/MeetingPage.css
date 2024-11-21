@@ -92,12 +92,6 @@
     min-height: 100vh;
   }
   
-  .table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
   
   .h2 {
     font-size: 1.8rem;
@@ -524,4 +518,10 @@
   .btn-delete:hover {
     background-color: #c82333;
   }
-  
+  .table-header {
+    display: flex;
+    /* justify-content: space-between; */
+    /* align-items: center; */
+    margin-bottom: 1rem;
+    flex-direction: column;
+}

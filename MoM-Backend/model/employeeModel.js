@@ -90,15 +90,8 @@ const EmployeeUserSchema = new mongoose.Schema(
   }
 );
 
-// Pre-save hook to hash password before saving
-EmployeeUserSchema.pre('save', async function(next) {
-  if (this.isModified('password')) {
-    this.password = await bcrypt.hash(this.password, 10); // Hash the password before saving
-  }
-  next();
-});
 
-// Create the model from the schema
+
 const EmployeeUser = mongoose.model('EmployeeUser', EmployeeUserSchema);
 
 module.exports = EmployeeUser;
