@@ -8,8 +8,8 @@ const EmployeeUser = require('../model/employeeModel');
 const validator = require('validator');
 const messages = require('../constants/constMessage');
 const jwt = require('jsonwebtoken'); 
-
-
+const ObjectId = require('mongoose').Types.ObjectId;
+const mongoose = require('mongoose')
 
 
 const login = async (email, password) => {
@@ -491,12 +491,12 @@ const checkDuplicateEmail = async (email) => {
     }
 }
 
-const listEmployee = async (filters = {}, page = 1, limit = 10, order = '1') => {
+const listEmployee = async (filters = {}, page = 1, limit = 10, order = '1', includeDeactivated = false) => {
     try {
         const skip = (page - 1) * limit;
 
-        // Apply filters for active employees if needed
-        const query = { isActive: true, ...filters };
+        // Apply filters based on whether to include deactivated employees
+        const query = includeDeactivated ? filters : { isActive: true, ...filters };
 
         // Handle sorting based on 'order'
         let sortOrder = 1; // Default is ascending order
@@ -527,6 +527,47 @@ const listEmployee = async (filters = {}, page = 1, limit = 10, order = '1') => 
 
 
 
+const verifyEmployee = async (employeeId) => {
+    try {
+        return await EmployeeUser.findOne(
+            { employeeId: employeeId },
+            {
+                _id: 1,
+                email: 1,
+                employeeName: 1,
+                employeeId: 1,
+                designation: 1,
+                department: 1,
+                unit: 1,
+            }
+        );
+    } catch (error) {
+        console.error('Error verifying employee:', error);
+        throw new Error('Error verifying employee');
+    }
+}
+
+const activateEmployee = async (employeeId) => {
+    const result = await EmployeeUser.findOneAndUpdate(
+        { _id: new mongoose.Types.ObjectId(employeeId) }, 
+        { $set: { isActive: true } },
+        { new: true } 
+    );
+    return result;
+};
+
+const deactivateEmployee = async (employeeId) => {
+    const result = await EmployeeUser.findOneAndUpdate(
+        { _id: new mongoose.Types.ObjectId(employeeId) }, 
+        { $set: { isActive: false } },
+        { new: true } 
+    );
+    return result;
+};
+
+
+
+
 
 
 
@@ -542,5 +583,7 @@ module.exports = {
     verifyOtpAndResetPassword,
     logoutService,
     createEmployee,
-    listEmployee
+    listEmployee,
+    activateEmployee,
+    deactivateEmployee
 }

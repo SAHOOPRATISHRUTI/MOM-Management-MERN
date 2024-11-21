@@ -64,7 +64,9 @@ const messages = {
     registerplz:'Invalid email address. Please register first.',
     logoutSuccess:'Logout Sucessfully',
     invalidTokenFormat:'Invalid Token Format',
-    createdSucess:'Employee Create sucessfully'
+    createdSucess:'Employee Create sucessfully',
+    deactivated:'Employee deactivated Sucessfully',
+    activated:'Employee activated Sucessfully'
 };
 
 module.exports = messages;

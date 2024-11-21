@@ -304,18 +304,30 @@ const createEmployee = async (req, res) => {
 
 const listEmployee = async (req, res) => {
     try {
-        // Retrieve query params for filters, pagination, etc.
-        const { page = 1, limit = 10, designation, department, unit, updatedAt, order = '-1' } = req.query;
+        const { page = 1, limit = 5, designation, department, unit, updatedAt, order = '-1', includeDeactivated = 'true' } = req.query;
 
         // Create filter object based on query params
         const filters = {};
+
         if (designation) filters.designation = designation;
         if (department) filters.department = department;
         if (unit) filters.unit = unit;
-        if (updatedAt) filters.updatedAt = updatedAt;  // Handle filtering by updatedAt
+        
+        // Handle filtering by updatedAt, ensuring it's in date format
+        if (updatedAt) {
+            const date = new Date(updatedAt);
+            if (!isNaN(date.getTime())) {  // Check if it's a valid date
+                filters.updatedAt = date;
+            } else {
+                return Responses.errorResponse(req, res, "Invalid date format for 'updatedAt'", 400);
+            }
+        }
 
-        // Call the service to get the list of employees, passing the order parameter
-        const result = await authService.listEmployee(filters, parseInt(page), parseInt(limit), order);
+        // Convert includeDeactivated to boolean
+        const includeDeactivatedFlag = includeDeactivated === 'true';
+
+        // Call the service to get the list of employees
+        const result = await authService.listEmployee(filters, parseInt(page), parseInt(limit), order, includeDeactivatedFlag);
 
         return Responses.successResponse(req, res, result, messages.fetchedSuccessfully, 200);
     } catch (error) {
@@ -324,6 +336,45 @@ const listEmployee = async (req, res) => {
     }
 };
 
+
+
+const activateEmployee = async (req, res) => {
+    try {
+        const { employeeId } = req.params;  
+
+        if (!employeeId) {
+            return Responses.failResponse(req, res, null, 'Employee ID is required', 400);
+        }
+        const result = await authService.activateEmployee(employeeId);
+
+        if (!result) {
+            return Responses.failResponse(req, res, null, messages.recordsNotFound, 404);
+        }
+
+        return Responses.successResponse(req, res, result, messages.activated, 200);
+    } catch (error) {
+        console.error('Error activating employee:', error);
+        return Responses.errorResponse(req, res, error);
+    }
+};
+
+const deactivateEmployee = async (req, res) => {
+    try {
+        const { employeeId } = req.params;  
+        if (!employeeId) {
+            return Responses.failResponse(req, res, null, 'Employee ID is required', 400);
+        }
+        const result = await authService.deactivateEmployee(employeeId);
+        if (!result) {
+            return Responses.failResponse(req, res, null, messages.recordsNotFound, 404);
+        }
+
+        return Responses.successResponse(req, res, result, messages.deactivated, 200);
+    } catch (error) {
+        console.error('Error deactivating employee:', error);
+        return Responses.errorResponse(req, res, error);
+    }
+};
 
 
 
@@ -339,6 +390,8 @@ module.exports = {
     verifyOtpForSignUP,
     logoutController,
     createEmployee,
-    listEmployee
+    listEmployee,
+    activateEmployee,
+    deactivateEmployee
 
 };

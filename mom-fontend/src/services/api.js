@@ -239,46 +239,78 @@ const addEmployee = async (employeeName, employeeId, email, designation, departm
   }
 };
 
-const listEmployee = async (filters = {}, page = 1, limit = 10) => {
+const listEmployee = async (filters = {}, page = 1, limit = 5) => {
   try {
     console.log("Sending request to list employees with filters:", filters, "page:", page, "limit:", limit);
 
-    // Prepare query parameters
     const params = {
       ...filters,
       page,
       limit
     };
 
-    // Send GET request to fetch employees with pagination and filters
-    const response = await axios.get(`${API_URL}/employees`, { params, headers: { 
-      Authorization: `Bearer ${localStorage.getItem('authToken')}` // Use token for authenticated requests
-    } });
+    console.log('Requesting employees with params:', params);
 
-    // Log and return the server response
+    const response = await axios.get(`${API_URL}/employees`, {
+      params,
+      headers: { 
+        Authorization: `Bearer ${localStorage.getItem('authToken')}` 
+      }
+    });
+
     console.log('Employees fetched successfully:', response.data);
-   // console.log("Employees:", response.data.data.employees);
     return response.data;
     
-    
   } catch (error) {
-    // Improved error handling
-    if (error.response) {
-      console.error('Server Error:', error.response.data.message);
-      throw new Error(error.response.data.message || 'Failed to fetch employees');
-    } else if (error.request) {
-      console.error('No response from server:', error.request);
-      throw new Error('No response from server');
-    } else {
-      console.error('Error during request:', error.message);
-      throw new Error('An error occurred while fetching employees');
-    }
+    console.error(error)
   }
 };
 
 
+const activateEmployee = async(employeeId)=>{
+  try{
+    console.log("Sensding requst to activateEmployeeID",employeeId);
+    const response = await axios.post(`${API_URL}/activate/${employeeId}`,
+      {},
+      {
+        headers:{
+          Authorization:`Bearer ${localStorage.getItem('authToken')}`
+        },
+      }
+    );
+    console.log('Employee added Sucessfully',response.data);
+    return response.data;
+    
+  }catch(error){
+    console.error(error)
+  }
+}
 
-export { loginUser,
+const deactiveEmployee = async(employeeId)=>{
+  try{
+    console.log('Sendding request to deactive employee id',employeeId);
+    const response = await axios.post(`${API_URL}/deactivate/${employeeId}`,
+      {},
+    {
+      headers:{
+        Authorization:`Bearer ${localStorage.getItem('authToken')}`
+      }
+    })
+    console.log('Employee Deactivate Sucssfully',response.data);
+    return response.data;
+    
+
+  }catch(error){
+    console.error(error)
+  }
+}
+
+
+
+
+
+export { 
+         loginUser,
          generateOTP,
          verifyOTP, 
          signupUser, 
@@ -287,5 +319,8 @@ export { loginUser,
          resetPassword,
          logoutUser,
          addEmployee,
-         listEmployee
-        };
+         listEmployee,
+        activateEmployee,
+        deactiveEmployee
+        
+      };

@@ -21,6 +21,10 @@ router.get('/employees',
  //Middleware.authenticateToken, // Optional, if authentication is needed
     employeeController.listEmployee
 );
+// activate employee
+router.post('/activate/:employeeId', Middleware.authenticateToken, employeeController.activateEmployee);
 
+// dectivate employee
+router.post('/deactivate/:employeeId', Middleware.authenticateToken, employeeController.deactivateEmployee);
 
 module.exports = router;

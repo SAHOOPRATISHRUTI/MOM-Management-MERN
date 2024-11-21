@@ -52,7 +52,7 @@ function Login() {
         } else {
           navigate('/dashboard'); // Navigate to the default dashboard
         }
-      }, 3000);
+      },0);
       console.log(email);
       
     } catch (error) {
