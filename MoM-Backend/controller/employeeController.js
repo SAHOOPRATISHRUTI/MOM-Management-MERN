@@ -302,33 +302,58 @@ const createEmployee = async (req, res) => {
 };
 
 
+
 const listEmployee = async (req, res) => {
     try {
-        const { page = 1, limit = 5, designation, department, unit, updatedAt, order = '-1', includeDeactivated = 'true' } = req.query;
+        // Destructure query parameters from the request
+        const { 
+            page = 1, 
+            limit = 5, 
+            designation, 
+            department, 
+            unit, 
+            updatedAt, 
+            order = '-1', 
+            includeDeactivated = 'true', 
+            searchKey 
+        } = req.query;
 
-        // Create filter object based on query params
+        // Create a filter object based on query params
         const filters = {};
 
+        // Add filters for designation, department, and unit if provided
         if (designation) filters.designation = designation;
         if (department) filters.department = department;
         if (unit) filters.unit = unit;
-        
-        // Handle filtering by updatedAt, ensuring it's in date format
+
+        // Handle filtering by updatedAt (ensure it's a valid date format)
         if (updatedAt) {
             const date = new Date(updatedAt);
-            if (!isNaN(date.getTime())) {  // Check if it's a valid date
-                filters.updatedAt = date;
+            if (!isNaN(date.getTime())) { // Check if it's a valid date
+                filters.updatedAt = { $gte: date }; // Filter for updates after this date
             } else {
                 return Responses.errorResponse(req, res, "Invalid date format for 'updatedAt'", 400);
             }
         }
 
+        // Handle the searchKey parameter to search across multiple fields
+        if (searchKey) {
+            filters.$or = [
+                { employeeName: { $regex: searchKey, $options: 'i' } },
+                { employeeId: { $regex: searchKey, $options: 'i' } },
+                { designation: { $regex: searchKey, $options: 'i' } },
+                { department: { $regex: searchKey, $options: 'i' } },
+                { unit: { $regex: searchKey, $options: 'i' } }
+            ];
+        }
+
         // Convert includeDeactivated to boolean
         const includeDeactivatedFlag = includeDeactivated === 'true';
 
-        // Call the service to get the list of employees
+        // Call the service method to get the list of employees with the applied filters
         const result = await authService.listEmployee(filters, parseInt(page), parseInt(limit), order, includeDeactivatedFlag);
 
+        // Return the result in a successful response
         return Responses.successResponse(req, res, result, messages.fetchedSuccessfully, 200);
     } catch (error) {
         console.log(error);

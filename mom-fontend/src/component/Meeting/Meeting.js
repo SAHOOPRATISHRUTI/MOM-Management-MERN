@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useEffect } from "react";
 import "./MeetingPage.css";
 import logo1 from "../../assets/logo1.png";
@@ -16,7 +16,6 @@ const MeetingPage = () => {
     const [searchKey, setSearchKey] = useState("");
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate();
-    let searchTimeout;
 
     const [addEmployeeForm, setAddEmployeeForm] = useState({
         employeeName: "",
@@ -36,42 +35,42 @@ const MeetingPage = () => {
         unit: "",
     });
 
+    const searchTimeout = useRef(null);
+
+
     const fetchEmployees = async (page, searchKey = "") => {
         try {
-            const filters = searchKey
-                ? { employeeName: { $regex: searchKey, $options: "i" } }
-                : {}; // You can add more filters like designation, department, etc. here.
-
-            console.log("Filters sent to backend:", filters); // Log filters to check
-
-            setLoading(true); // Set loading state to true when fetching data.
-
-            const response = await listEmployee(filters, page);
-
-            console.log("API Response:", response); // Log the response to ensure data is returned
-            setEmployees(response.data.employees || []);
+            setLoading(true);
+            const response = await listEmployee(page, 5, '-1', searchKey);
+            console.log("API Response:", response.data.employeeData);
+            setEmployees(response.data.employeeData || []);
             setTotalEmployees(response.data.totalEmployees || 0);
             setTotalPages(response.data.totalPages || 0);
+            console.log("ffffffffffffffffff", response.data.totalEmployees)
+            const totalEmployees = response.data.totalEmployees;
         } catch (error) {
             console.error("Error fetching employees:", error);
-            toast.error("Failed to fetch employees. Please try again.");
             setEmployees([]);
             setTotalEmployees(0);
             setTotalPages(0);
         } finally {
-            setLoading(false); // Set loading state to false once data is fetched or error occurs.
+            setLoading(false);
         }
     };
 
-
-
-
     const handleSearchChange = (e) => {
-        setSearchKey(e.target.value);
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            fetchEmployees(page, e.target.value);
-        }, 500); // Adjust delay as needed
+        const searchValue = e.target.value;
+        setSearchKey(searchValue);
+
+
+        if (searchTimeout.current) {
+            clearTimeout(searchTimeout.current);
+        }
+
+
+        searchTimeout.current = setTimeout(() => {
+            fetchEmployees(page, searchValue);
+        }, 500);
     };
 
 
@@ -82,7 +81,7 @@ const MeetingPage = () => {
 
     useEffect(() => {
         fetchEmployees(page, searchKey);
-    }, [page, searchKey]);  // Single effect for handling both page and search updates
+    }, [page, searchKey]);
 
 
     const handleLogout = async () => {
@@ -103,7 +102,7 @@ const MeetingPage = () => {
             [name]: value,
         }));
 
-        // Validate the field
+
         validateField(name, value);
     };
 
@@ -447,8 +446,9 @@ const MeetingPage = () => {
                         <div className="employee-list-container p-3 border rounded bg-white">
                             <div className="tbl-text-search d-flex justify-content-between mb-3">
                                 <div className="left-tbl-text">
-                                    {/* Optionally show the range of employees */}
+                                    Showing {((page - 1) * 5) + 1} - {Math.min(page * 5, totalEmployees)} Employees out of {totalEmployees}
                                 </div>
+
                                 <div className="search-box d-flex align-items-center">
                                     <input
                                         type="search"

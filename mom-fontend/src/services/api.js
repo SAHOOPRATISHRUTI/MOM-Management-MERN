@@ -239,18 +239,24 @@ const addEmployee = async (employeeName, employeeId, email, designation, departm
   }
 };
 
-const listEmployee = async (filters = {}, page = 1, limit = 5) => {
+const listEmployee = async (page = 1, limit = 5, order = '-1', searchKey = '') => {
   try {
-    console.log("Sending request to list employees with filters:", filters, "page:", page, "limit:", limit);
+    console.log("Sending request to list employees with filters:", "page:", page, "limit:", limit, "order:", order, "searchKey:", searchKey);
 
+    // Add default value for includeDeactivated (false if not provided)
+    const includeDeactivated = 'true'; // You can change this to 'false' depending on the business logic
+
+    // Build the query params based on the provided filters, page, limit, order, and searchKey
     const params = {
-      ...filters,
       page,
-      limit
+      limit,
+      order,
+      searchKey,
     };
 
     console.log('Requesting employees with params:', params);
 
+    // Make the GET request to the API
     const response = await axios.get(`${API_URL}/employees`, {
       params,
       headers: { 
@@ -262,9 +268,11 @@ const listEmployee = async (filters = {}, page = 1, limit = 5) => {
     return response.data;
     
   } catch (error) {
-    console.error(error)
+    console.error('Error fetching employees:', error);
+    throw new Error('Error fetching employees');
   }
 };
+
 
 
 const activateEmployee = async(employeeId)=>{

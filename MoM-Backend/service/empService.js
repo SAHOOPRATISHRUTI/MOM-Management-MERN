@@ -505,7 +505,7 @@ const listEmployee = async (filters = {}, page = 1, limit = 10, order = '1', inc
         }
 
         // Fetch employees with pagination and sorting by updatedAt (or any other field)
-        const employees = await EmployeeUser.find(query)
+        const employeeData = await EmployeeUser.find(query)
             .skip(skip)
             .limit(limit)
             .select('_id employeeName employeeId email designation department unit isActive updatedAt')
@@ -517,12 +517,19 @@ const listEmployee = async (filters = {}, page = 1, limit = 10, order = '1', inc
         // Calculate total pages for pagination
         const totalPages = Math.ceil(totalEmployees / limit);
 
-        return { employees, totalEmployees, totalPages };
+        return {
+            currentPage: page,
+            totalPages: totalPages,
+            totalEmployees: totalEmployees,
+            employeeData: employeeData,
+        };
     } catch (error) {
         console.error('Error fetching employees:', error);
         throw new Error('Error fetching employees');
     }
 };
+
+
 
 
 
