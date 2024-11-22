@@ -13,6 +13,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 import MeetingPage from './component/AdminDashboard/AdminDashboard';
 import AuthGuard from './AuthGuard'; 
+import Profile from './component/Profile/Profile';
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
             </AuthGuard>
           }
         />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/verify-otp" element={<OTPVerification />} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

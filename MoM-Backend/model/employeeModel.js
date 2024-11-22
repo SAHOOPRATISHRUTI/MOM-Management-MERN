@@ -23,21 +23,20 @@ const EmployeeUserSchema = new mongoose.Schema(
         validator: validator.isEmail,
         message: '{VALUE} is not a valid email. Please enter a valid email.',
       },
-      sparse: true, // Allows for empty fields when unique index is used
+      sparse: true, 
     },
     phone: {
       type: String,
-      sparse: true, // Ensures that the index is only applied to non-null phone numbers
+      sparse: true, 
       validate: {
         validator: function(v) {
-          return v == null || /^[0-9]{10}$/.test(v);  // Allow null or validate 10-digit phone numbers
+          return v == null || /^[0-9]{10}$/.test(v);  
         },
         message: '{VALUE} is not a valid phone number. Please enter a valid phone number.',
       },
     },
     password: {
-      type: String, // For user authentication
-      // required: true, // Assuming password is required
+      type: String, 
     },
     address: {
       type: String,
@@ -65,7 +64,7 @@ const EmployeeUserSchema = new mongoose.Schema(
       default: false,
     },
     isAuthenticated: {
-      type: Boolean, // For user authentication status
+      type: Boolean, 
       default: false,
     },
     otp: {
@@ -82,11 +81,11 @@ const EmployeeUserSchema = new mongoose.Schema(
     },
     isAdmin: {
       type: Boolean,
-      default: false, // Default is set to false, assuming normal user
+      default: false,
     }
   },
   {
-    timestamps: true, // Automatically add createdAt and updatedAt fields
+    timestamps: true, 
   }
 );
 

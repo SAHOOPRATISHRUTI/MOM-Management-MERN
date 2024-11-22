@@ -27,4 +27,6 @@ router.post('/activate/:employeeId', Middleware.authenticateToken, employeeContr
 // dectivate employee
 router.post('/deactivate/:employeeId', Middleware.authenticateToken, employeeController.deactivateEmployee);
 
+router.put('/update-profile/:id', employeeController.updateEmployeeProfileController);
+
 module.exports = router;

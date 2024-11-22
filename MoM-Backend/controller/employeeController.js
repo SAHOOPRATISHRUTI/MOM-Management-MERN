@@ -2,6 +2,7 @@ const authService = require('../service/empService');
 const Responses = require('../helpers/response');
 const messages = require('../constants/constMessage');
 const validator = require('validator')
+const mongoose = require('mongoose')
 
 const login = async (req, res) => {
     const { email, password } = req.body;
@@ -405,7 +406,36 @@ const deactivateEmployee = async (req, res) => {
     }
 };
 
+const updateEmployeeProfileController = async (req, res) => {
+    const { id } = req.params;  // Extract employeeId (MongoDB ObjectId) from URL parameter
+  
+    // // Validate the ObjectId format
+    // if (!mongoose.Types.ObjectId.isValid(id)) {
+    //   return res.status(400).json({ message: 'Invalid EmployeeId' });
+    // }
+  
+    const updateData = req.body; // Extract the update data from request body
+  
+    try {
+      // Call service to update profile
+      const updatedEmployee = await authService.updateEmployeeProfile(id, updateData);
+  
+      if (!updatedEmployee) {
+        return res.status(404).json({ message: 'Employee not found' });
+      }
 
+      return Responses.successResponse(req, res, updatedEmployee, 'Employee profile updated successfully', 200);
+  
+    //   // Send the response with updated data
+    //   res.status(200).json({
+    //     message: 'Employee profile updated successfully',
+    //     employee: updatedEmployee,
+    //   });
+    } catch (error) {
+        console.error(error)
+        return Responses.errorResponse(req, res, error);
+    }
+  };
 
 
 
@@ -421,6 +451,7 @@ module.exports = {
     createEmployee,
     listEmployee,
     activateEmployee,
-    deactivateEmployee
+    deactivateEmployee,
+    updateEmployeeProfileController
 
 };

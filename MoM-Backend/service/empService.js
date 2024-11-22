@@ -526,11 +526,6 @@ const listEmployee = async (filters = {}, page = 1, limit = 10, order = '1', inc
     }
 };
 
-
-
-
-
-
 const verifyEmployee = async (employeeId) => {
     try {
         return await EmployeeUser.findOne(
@@ -569,6 +564,33 @@ const deactivateEmployee = async (employeeId) => {
     return result;
 };
 
+const updateEmployeeProfile = async (id, updateData) => {
+    try {
+   
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new Error('Invalid EmployeeId');
+      }
+  
+      const objectId = new mongoose.Types.ObjectId(id);
+  
+      const updatedEmployee = await EmployeeUser.findByIdAndUpdate(
+        objectId, 
+        { $set: updateData },  
+        { new: true, runValidators: true } 
+      );
+  
+      if (!updatedEmployee) {
+        throw new Error('Employee not found');
+      }
+  
+      return updatedEmployee;
+    } catch (err) {
+
+      console.error('Error updating employee profile:', err.message);
+      throw new Error(err.message);  
+    }
+  };
+  
 
 
 
@@ -589,5 +611,6 @@ module.exports = {
     createEmployee,
     listEmployee,
     activateEmployee,
-    deactivateEmployee
+    deactivateEmployee,
+    updateEmployeeProfile,
 }
