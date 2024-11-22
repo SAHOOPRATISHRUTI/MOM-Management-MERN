@@ -8,9 +8,9 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom';
 import { validateEmail, validatePassword } from '../../validator/validator';
-import { generateOTP } from '../../services/api'; 
+import { generateOTP } from '../../services/api';
 import meeting from '../../assets/meeting.png'
-import { Visibility, VisibilityOff } from '@mui/icons-material'; 
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 function Login() {
   const navigate = useNavigate();
@@ -18,49 +18,49 @@ function Login() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [showPassword, setShowPassword] = useState(false); 
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setErrorMessage('');
-  
+
     if (!email || !validateEmail(email)) {
       setErrorMessage('Please enter a valid email address.');
       return;
     }
-  
+
     if (!password || !validatePassword(password)) {
       setErrorMessage('Password must be at least 8 characters long.');
       return;
     }
-  
+
     try {
       const response = await loginUser(email, password);
       console.log(response.data.token);
 
       localStorage.setItem('authToken', response.data.token);
-  
+
       // Assuming `response.data.role` contains the user's role
       const userRole = response.data.role;
       console.log(userRole)
-  
+
       toast.success(response.message, { autoClose: 2000 });
-  
+
       setTimeout(() => {
         if (userRole === 'user') {
-          navigate('/user-dashboard'); // Navigate to the User Dashboard
+          navigate('/user-dashboard');
         } else {
-          navigate('/dashboard'); // Navigate to the default dashboard
+          navigate('/dashboard');
         }
-      },0);
+      }, 0);
       console.log(email);
-      
+
     } catch (error) {
       toast.error(error.message, { autoClose: 3000 });
       setErrorMessage(error.message || 'An unexpected error occurred. Please try again.');
     }
   };
-  
+
 
   const handleForgotPassword = async () => {
     if (!email || !validateEmail(email)) {
@@ -69,9 +69,9 @@ function Login() {
     }
 
     try {
-      const response = await generateOTP(email); // Call the generateOTP API
+      const response = await generateOTP(email);
       toast.success(response.message || 'OTP sent successfully!', { autoClose: 2000 });
-      navigate('/forgot-password',{ state: { email: email }}); // Navigate to the forgot-password page
+      navigate('/forgot-password', { state: { email: email } });
     } catch (error) {
       toast.error(error.message || 'Error generating OTP. Please try again.');
     }
@@ -114,16 +114,16 @@ function Login() {
                     margin="normal"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    
+
                     error={!!errorMessage && !validatePassword(password)}
                     helperText={!!errorMessage && !validatePassword(password) && 'Password must be at least 8 characters long.'}
                     InputProps={{
                       endAdornment: (
                         <IconButton
                           aria-label="toggle password visibility"
-                          onClick={() => setShowPassword(!showPassword)} 
+                          onClick={() => setShowPassword(!showPassword)}
                         >
-                          {showPassword ? <VisibilityOff /> : <Visibility />} {/* Show/hide eye icon */}
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
                         </IconButton>
                       ),
                     }}
@@ -142,8 +142,12 @@ function Login() {
                     label="Remember me"
                   /> */}
                   <Button
-                    onClick={handleForgotPassword} 
-                    style={{ textDecoration: 'none', color: '#3f51b5' }}
+                    onClick={handleForgotPassword}
+                    style={{
+                      textDecoration: 'none',
+                      color: ' rgb(14 80 207)',
+                      display: 'contents'
+                    }}
                   >
                     Forgot Password
                   </Button>
@@ -190,7 +194,7 @@ function Login() {
           </Grid>
         </Grid>
       </Container>
-    </section>
+    </section >
   );
 }
 

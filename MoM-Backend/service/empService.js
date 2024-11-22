@@ -158,67 +158,64 @@ const generateAndSaveOtp = async (email) => {
 
 const verifyOTP = async (email, otp) => {
     try {
-        // Check if email and OTP are provided
         if (!email || !otp) {
             return { success: false, message: 'Email and OTP are required' };
         }
 
-        // Find the OTP record for the email using the user model
         const otpRecord = await EmployeeUser.findOne({ email });
         if (!otpRecord) {
             return { success: false, message: 'No OTP record found for this email' };
         }
 
         const currentTime = Date.now();
-
-        // Ensure expiresAt is a valid Date object or convert it to a timestamp
         const expiresAt = otpRecord.expiresAt ? otpRecord.expiresAt.getTime() : null;
 
-        // Check if OTP has expired using expiresAt
-        if (expiresAt && currentTime > expiresAt) {  // Ensure expiresAt exists before checking
-            await OTP.deleteOne({ email });  // Delete expired OTP record from OTP collection
+        if (expiresAt && currentTime > expiresAt) {  
+            await OTP.deleteOne({ email });  
             return { success: false, message: 'OTP has expired. Please request a new one.' };
         }
 
-        // Check if OTP has exceeded maximum attempts (e.g., 3 attempts)
         if (otpRecord.otpAttempts >= 3) {
-            // Reset OTP after 30 minutes (1800000 ms)
             const resetTime = otpRecord.otpAttemptResetTime ? otpRecord.otpAttemptResetTime.getTime() : null;
-
-            // If 30 minutes have passed, reset OTP attempts and allow another OTP verification
-            if (resetTime && currentTime - resetTime > 1800000) {  // 30 minutes in ms
-                otpRecord.otpAttempts = 0;  // Reset OTP attempts
-                otpRecord.otpAttemptResetTime = currentTime;  // Set reset time
+            if (resetTime && currentTime - resetTime > 1800000) {  
+                otpRecord.otpAttempts = 0; 
+                otpRecord.otpAttemptResetTime = currentTime; 
                 await otpRecord.save();
             } else {
                 return { success: false, message: 'Maximum OTP attempts reached. Please try again after 30 minutes.' };
             }
         }
 
-        // Check if OTP matches
+     
         if (otpRecord.otp !== otp) {
-            otpRecord.otpAttempts += 1;  // Increment OTP attempts
-            otpRecord.otpAttemptResetTime = currentTime;  // Update reset time when a wrong OTP is entered
-            await otpRecord.save();  // Save updated attempts count
+            otpRecord.otpAttempts += 1;  
+            otpRecord.otpAttemptResetTime = currentTime; 
+            await otpRecord.save();  
             return { success: false, invalidOtp: true, message: 'Invalid OTP' };
         }
 
-        // OTP is valid, update verification status
         otpRecord.isVerified = true;
         otpRecord.verifiedAt = currentTime;
-        otpRecord.otpAttempts = 0;  // Reset OTP attempts after successful verification
+        otpRecord.otpAttempts = 0;  
         await otpRecord.save();
 
-        // Generate JWT Token after OTP verification
-        const payload = { email: otpRecord.email, userId: otpRecord._id };  // JWT payload
-        const token = jwt.sign(payload,process.env.JWT_USER_SECRET, { expiresIn: '1h' });  // Set an expiration time for the token (e.g., 1 hour)
-
-        return { success: true, verified: true, message: 'OTP verified successfully', token };
+     
+        const payload = { 
+            email: otpRecord.email, 
+            userId: otpRecord._id, 
+            role: otpRecord.role,
+            employeeName:otpRecord.employeeName
+        };  
+        const token = jwt.sign(payload, process.env.JWT_USER_SECRET, { expiresIn: '1h' });
+         const role= otpRecord.role ;
+         const employeeName=otpRecord.employeeName
+        return { success: true, verified: true, message: 'OTP verified successfully', token,role,employeeName };
     } catch (error) {
         console.error('Error during OTP verification:', error);
         return { success: false, message: error.message || 'Internal server error' };
     }
 };
+
 
 const verifyOtpAndResetPassword = async (email, otp, password, confirmPassword) => {
     try {

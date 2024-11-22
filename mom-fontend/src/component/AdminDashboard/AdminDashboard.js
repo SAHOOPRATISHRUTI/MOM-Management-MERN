@@ -1,14 +1,16 @@
 import React, { useState, useRef } from "react";
 import { useEffect } from "react";
-import "./MeetingPage.css";
+import "./AdminDashboard.css";
 import logo1 from "../../assets/logo1.png";
 import { toast } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom";
 import { TextField, MenuItem, Button, InputLabel, Select, FormControl, FormHelperText, Switch, FormControlLabel } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { logoutUser, addEmployee, listEmployee, activateEmployee, deactiveEmployee, } from "../../services/api";
+import AuthService from "../AuthService/Authservice";
 
 const MeetingPage = () => {
+    const [employeeName, setEmployeeName] = useState('');
     const [employees, setEmployees] = useState([]);
     const [totalEmployees, setTotalEmployees] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
@@ -81,6 +83,9 @@ const MeetingPage = () => {
 
     useEffect(() => {
         fetchEmployees(page, searchKey);
+        const name = AuthService.getEmployeeName();
+        console.log('Fetched Employee Name:', name); 
+        setEmployeeName(name);
     }, [page, searchKey]);
 
 
@@ -275,7 +280,7 @@ const MeetingPage = () => {
                                             alt="Profile"
                                             className="profile-avatar"
                                         />
-                                        Priyanka
+                                        {employeeName}
                                     </a>
                                     <ul
                                         className="dropdown-menu"

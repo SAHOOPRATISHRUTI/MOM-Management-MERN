@@ -147,11 +147,12 @@ const verifyOtp = async (req, res) => {
         if (!/^\d{6}$/.test(otp)) {
             return Responses.failResponse(req, res, null, messages.invalidOtpFormat, 400);
         }
-     
+
         const result = await authService.verifyOTP(email, otp);
+        console.log(result);
+        
 
         if (!result.success) {
-            
             if (result.invalidOtp) {
                 return Responses.failResponse(req, res, null, messages.invalidOtp, 400);
             }
@@ -162,11 +163,13 @@ const verifyOtp = async (req, res) => {
 
         if (result.success && result.verified) {
             return Responses.successResponse(req, res, {
-                token: result.token
+                token: result.token,
+                role: result.role,
+                employeeName:result.employeeName
             }, messages.otpVerificationSuccess, 200);
+            
         }
 
-       
         return Responses.failResponse(req, res, null, messages.otpVerificationFailed, 400);
 
     } catch (error) {
@@ -174,6 +177,7 @@ const verifyOtp = async (req, res) => {
         return Responses.errorResponse(req, res, error);
     }
 };
+
 
 
 const verifyOtpAndResetPasswordController = async (req, res) => {

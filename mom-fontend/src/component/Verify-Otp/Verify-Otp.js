@@ -58,19 +58,35 @@ const VerifyOTP = () => {
 
     try {
       const result = await verifyOTP(email, otpValue);
+      console.log('result------',result);
+      
 
-      if (result.success) {
-        toast.success(result.message, { autoClose: 2000 });
-        setTimeout(() => {
+      const userRole = result.data.role;
+      console.log(userRole)
+
+  
+      setTimeout(() => {
+        if (userRole === 'user') {
+          toast.success(result.message);
+          navigate('/user-dashboard');
+        } else {
+          toast.success(result.message);
           navigate('/dashboard');
-        }, 2500);
-      } else {
-        errorMessage = result.message;
-        toast.error(errorMessage, { autoClose: 2000 });
-      }
+        }
+      }, 0);
+
+      // if (result.success) {
+      //   toast.success(result.message);
+      //   setTimeout(() => {
+      //     navigate('/dashboard');
+      //   },0);
+      // } else {
+      //   errorMessage = result.message;
+      //   toast.error(errorMessage);
+      // }
     } catch (error) {
       errorMessage = error.message;
-      toast.error(errorMessage, { autoClose: 3000 });
+      toast.error(errorMessage);
     }
   };
 
@@ -81,20 +97,19 @@ const VerifyOTP = () => {
     try {
       const result = await generateOTP(email);
       if (result.success) {
-        toast.success(result.message, { autoClose: 2000 });
+        toast.success(result.message);
       } else {
 
-        toast.error(result.message, { autoClose: 2000 });
+        toast.error(result.message);
       }
     } catch (error) {
 
-      toast.error(error.message, { autoClose: 3000 });
+      toast.error(error.message);
     }
 
-    // Reset "Resending..." text after 3 seconds
     setTimeout(() => {
       setIsResending(false);
-    }, 3000);
+    },0);
   };
 
 

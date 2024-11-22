@@ -59,9 +59,11 @@ const verifyOTP = async (email, otp) => {
     if (!token) {
       throw new Error('Token is missing from server response');
     }
+    const employeeName= response.data.data?.employeeName;
 
     // Store the token in localStorage
     localStorage.setItem('authToken', token);
+    localStorage.setItem('employeeName', employeeName);
     console.log('Token stored in localStorage:', token);
 
     console.log('OTP verification response:', response.data);
