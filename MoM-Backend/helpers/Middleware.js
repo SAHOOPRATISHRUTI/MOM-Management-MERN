@@ -1,7 +1,11 @@
 const jwt = require('jsonwebtoken');
-const Response = require('../helpers/response'); // assuming you have a response helper
-const employeeService = require('../service/empService'); // assuming employee service for DB checks
-const message = require('../constants/constMessage'); // assuming message constants for error messages
+const Response = require('../helpers/response');  // Assuming you're using a standardized response helper
+
+// Function to generate JWT token
+const generateToken = (userData) => {
+    // Here, 'userData' is an object containing user info such as _id, name, email
+    return jwt.sign(userData, process.env.JWT_USER_SECRET, { expiresIn: '1h' }); // Token expires in 1 hour
+};
 
 // Middleware to authenticate token
 const authenticateToken = (req, res, next) => {
@@ -35,8 +39,7 @@ const authenticateToken = (req, res, next) => {
     }
 };
 
-
 module.exports = {
+    generateToken,  // Export the generateToken function
     authenticateToken,
- 
 };

@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "axios": "^1.7.8",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
@@ -18,10 +19,16 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "express-session": "^1.18.1",
+    "google-auth-library": "^9.15.0",
+    "googleapis": "^144.0.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.8.1",
+    "mongoose": "^8.8.2",
+    "node": "^20.18.1",
     "nodemailer": "^6.9.16",
+    "oauth2client": "^1.0.0",
+    "passport": "^0.7.0",
+    "passport-google-oauth2": "^0.2.0",
     "validator": "^13.12.0"
   }
 }

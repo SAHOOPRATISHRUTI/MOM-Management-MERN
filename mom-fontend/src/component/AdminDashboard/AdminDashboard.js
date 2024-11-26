@@ -64,12 +64,9 @@ const MeetingPage = () => {
         const searchValue = e.target.value;
         setSearchKey(searchValue);
 
-
         if (searchTimeout.current) {
             clearTimeout(searchTimeout.current);
         }
-
-
         searchTimeout.current = setTimeout(() => {
             fetchEmployees(page, searchValue);
         }, 500);
@@ -79,7 +76,6 @@ const MeetingPage = () => {
     const handlePageChange = (newPage) => {
         setPage(newPage);
     };
-
 
     useEffect(() => {
         fetchEmployees(page, searchKey);

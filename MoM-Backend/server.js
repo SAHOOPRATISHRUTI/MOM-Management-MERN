@@ -7,7 +7,7 @@ const session = require('express-session');
 const PORT = process.env.PORT || 5555;
 
 const corsOptions = {
-    origin: 'http://localhost:3000',  
+    origin: 'http://localhost:3001',  
     methods: 'GET,POST',
     credentials: true
 };

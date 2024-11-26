@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const employeeController = require('../controller/employeeController');
+const authController = require('../controller/authController')
 const Middleware = require('../helpers/Middleware'); // Import middleware
 const Validator = require('../validator/employeeValidator')
 
@@ -28,5 +29,7 @@ router.post('/activate/:employeeId', Middleware.authenticateToken, employeeContr
 router.post('/deactivate/:employeeId', Middleware.authenticateToken, employeeController.deactivateEmployee);
 
 router.put('/update-profile/:id', employeeController.updateEmployeeProfileController);
+
+router.get('/google',authController.googleLogin)
 
 module.exports = router;

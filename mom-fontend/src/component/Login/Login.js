@@ -3,14 +3,17 @@ import './Login.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { loginUser } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
-import { TextField, Button, Container, Grid, Typography, Box, FormControlLabel, Checkbox, IconButton } from '@mui/material';
+import { TextField, Button, Container, Grid, Typography, Box, IconButton } from '@mui/material';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom';
 import { validateEmail, validatePassword } from '../../validator/validator';
 import { generateOTP } from '../../services/api';
-import meeting from '../../assets/meeting.png'
+import meeting from '../../assets/meeting.png';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { GoogleLogin, useGoogleLogin } from '@react-oauth/google';
+import { googleAuth } from '../../services/api';
+
 
 function Login() {
   const navigate = useNavigate();
@@ -19,6 +22,36 @@ function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+
+  const responseGoogle = async (authResult) => {
+    try {
+      if (authResult["code"]) {
+       
+        const result = await googleAuth(authResult["code"]); 
+        console.log(result);
+        console.log("ffffffffffff", result.data.userData)
+        const { email, name, image, authToken } = result.data.userData;
+        const obj = { email, name, authToken, image };
+        localStorage.setItem('userinfo', JSON.stringify(obj));
+
+        navigate('/user-dashboard');
+      } else {
+        console.log(authResult);
+        throw new Error('No authorization code received');
+      }
+    } catch (e) {
+      console.log('Error during Google login:', e);
+    }
+  };
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: responseGoogle,
+    onError: responseGoogle,
+    flow: "auth-code", 
+  });
+
+
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -40,9 +73,8 @@ function Login() {
 
       localStorage.setItem('authToken', response.data.token);
 
-      // Assuming `response.data.role` contains the user's role
       const userRole = response.data.role;
-      console.log(userRole)
+      console.log(userRole);
 
       toast.success(response.message, { autoClose: 2000 });
 
@@ -61,7 +93,6 @@ function Login() {
     }
   };
 
-
   const handleForgotPassword = async () => {
     if (!email || !validateEmail(email)) {
       toast.error('Please enter a valid email address for OTP.');
@@ -76,6 +107,7 @@ function Login() {
       toast.error(error.message || 'Error generating OTP. Please try again.');
     }
   };
+
 
   return (
     <section className="user-login">
@@ -114,7 +146,6 @@ function Login() {
                     margin="normal"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-
                     error={!!errorMessage && !validatePassword(password)}
                     helperText={!!errorMessage && !validatePassword(password) && 'Password must be at least 8 characters long.'}
                     InputProps={{
@@ -131,16 +162,6 @@ function Login() {
                 </div>
 
                 <div className="form-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  {/* <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        color="primary"
-                      />
-                    }
-                    label="Remember me"
-                  /> */}
                   <Button
                     onClick={handleForgotPassword}
                     style={{
@@ -171,6 +192,16 @@ function Login() {
                   </div>
                 </a>
               </form>
+
+              <div className="login-page">
+                
+                <button className='login-with-google-btn' onClick={googleLogin}>
+                  Sign in with Google
+                </button>
+                
+              </div>
+
+
             </Box>
           </Grid>
 
@@ -194,7 +225,7 @@ function Login() {
           </Grid>
         </Grid>
       </Container>
-    </section >
+    </section>
   );
 }
 

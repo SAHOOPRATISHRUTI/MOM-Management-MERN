@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { logoutUser, listEmployee,} from "../../services/api";
 import AuthService from "../AuthService/Authservice";
+import { Link } from "react-router-dom";
 
 
 function UserDashboard() {
@@ -174,8 +175,8 @@ function UserDashboard() {
                                         aria-labelledby="navbarDropdown"
                                     >
                                         <li>
-                                            <a className="dropdown-item" href="#">
-                                                Account
+                                            <a className="dropdown-item">
+                                              <Link to='/profile'>Account</Link>
                                             </a>
                                         </li>
                                         <li>

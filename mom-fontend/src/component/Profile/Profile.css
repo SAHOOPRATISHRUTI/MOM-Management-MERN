@@ -1,0 +1,44 @@
+/* profile.css */
+
+/* Styles for the TextField */
+.custom-textfield {
+    background-color: #fafafa;
+    border-radius: 8px;
+    width: 100%;
+  }
+  
+  .custom-textfield .MuiOutlinedInput-root {
+    border-color: #ddd;
+  }
+  
+  .custom-textfield .MuiOutlinedInput-root:hover fieldset {
+    border-color: #007bff;
+  }
+  
+  .custom-textfield .MuiOutlinedInput-root.Mui-focused fieldset {
+    border-color: #007bff;
+  }
+  
+  /* Adjusting label style */
+  .custom-textfield .MuiInputLabel-root {
+    color: #333;
+  }
+  
+  .custom-textfield .MuiInputLabel-root.Mui-focused {
+    color: #007bff;
+  }
+  
+  /* For the InputAdornment (icons inside TextField) */
+  .custom-textfield .MuiInputAdornment-root {
+    color: #007bff;
+  }
+  
+  .custom-dialog {
+    width: 80%;
+    max-width: 900px;
+  }
+  
+  .custom-grid-spacing {
+    margin-top: 16px;
+  }
+  
