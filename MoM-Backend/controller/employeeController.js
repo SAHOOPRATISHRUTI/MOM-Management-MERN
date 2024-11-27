@@ -51,7 +51,7 @@ const login = async (req, res) => {
 
 
 const signup = async (req, res) => {
-    const { employeeName, email, phone, password, address, role,updatedAt } = req.body;
+    const { employeeName, email, phone, password, address, role,updatedAt,profilePicture } = req.body;
 
     try {
         // Validate input fields
@@ -75,7 +75,7 @@ const signup = async (req, res) => {
         // }
 
 
-        const result = await authService.signup(employeeName, email, phone, password, address, role,updatedAt);
+        const result = await authService.signup(employeeName, email, phone, password, address, role,updatedAt,profilePicture);
 
 
         if (result.existingUser) {
@@ -84,7 +84,7 @@ const signup = async (req, res) => {
 
 
         return Responses.successResponse(req, res, {
-            employeeName, email, phone, address, role, updatedAt: result.user.updatedAt
+            employeeName, email, phone, address, role, updatedAt: result.user.updatedAt,profilePicture:result.user.profilePicture
         }, messages.signupSuccess, 200);
         
     } catch (error) {
@@ -310,7 +310,7 @@ const createEmployee = async (req, res) => {
 
 const listEmployee = async (req, res) => {
     try {
-        // Destructure query parameters from the request
+      
         const { 
             page = 1, 
             limit = 5, 
@@ -331,17 +331,16 @@ const listEmployee = async (req, res) => {
         if (department) filters.department = department;
         if (unit) filters.unit = unit;
 
-        // Handle filtering by updatedAt (ensure it's a valid date format)
+       
         if (updatedAt) {
             const date = new Date(updatedAt);
-            if (!isNaN(date.getTime())) { // Check if it's a valid date
-                filters.updatedAt = { $gte: date }; // Filter for updates after this date
+            if (!isNaN(date.getTime())) { 
+                filters.updatedAt = { $gte: date }; 
             } else {
                 return Responses.errorResponse(req, res, "Invalid date format for 'updatedAt'", 400);
             }
         }
 
-        // Handle the searchKey parameter to search across multiple fields
         if (searchKey) {
             filters.$or = [
                 { employeeName: { $regex: searchKey, $options: 'i' } },
@@ -352,13 +351,12 @@ const listEmployee = async (req, res) => {
             ];
         }
 
-        // Convert includeDeactivated to boolean
+
         const includeDeactivatedFlag = includeDeactivated === 'true';
 
-        // Call the service method to get the list of employees with the applied filters
+
         const result = await authService.listEmployee(filters, parseInt(page), parseInt(limit), order, includeDeactivatedFlag);
 
-        // Return the result in a successful response
         return Responses.successResponse(req, res, result, messages.fetchedSuccessfully, 200);
     } catch (error) {
         console.log(error);

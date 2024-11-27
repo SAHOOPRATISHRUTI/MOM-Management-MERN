@@ -44,7 +44,7 @@ const login = async (email, password) => {
 
 
 const signup = async (employeeName, email, phone, password, address, role, otp, updatedAt) => {
-    // Validation checks
+
     if (!validator.isEmail(email)) {
         throw new Error('Invalid email format');
     }
@@ -75,7 +75,7 @@ const signup = async (employeeName, email, phone, password, address, role, otp, 
 
     await newUser.save();
 
-    // Return the user data along with updatedAt (this will be managed by MongoDB)
+
     return {
         message: 'User registered successfully!',
         user: {
@@ -84,7 +84,8 @@ const signup = async (employeeName, email, phone, password, address, role, otp, 
             email: newUser.email,
             address: newUser.address,
             role: newUser.role,
-            updatedAt: newUser.updatedAt  // The automatically set updatedAt
+            updatedAt: newUser.updatedAt,
+            profilePicture:newUser.profilePicture 
         }
     };
 };
@@ -492,23 +493,21 @@ const listEmployee = async (filters = {}, page = 1, limit = 10, order = '1', inc
     try {
         const skip = (page - 1) * limit;
 
-        // Apply filters based on whether to include deactivated employees
         const query = includeDeactivated ? filters : { isActive: true, ...filters };
 
-        // Handle sorting based on 'order'
-        let sortOrder = 1; // Default is ascending order
+    
+        let sortOrder = 1; 
         if (order === '-1') {
-            sortOrder = -1; // Descending order if -1
+            sortOrder = -1; 
         }
 
-        // Fetch employees with pagination and sorting by updatedAt (or any other field)
         const employeeData = await EmployeeUser.find(query)
             .skip(skip)
             .limit(limit)
-            .select('_id employeeName employeeId email designation department unit isActive updatedAt')
-            .sort({ updatedAt: sortOrder }); // Sort by updatedAt field
+            .select('_id employeeName employeeId email designation department unit isActive profilePicture updatedAt')
+            .sort({ updatedAt: sortOrder }); 
 
-        // Get total count of employees to calculate total pages
+
         const totalEmployees = await EmployeeUser.countDocuments(query);
 
         // Calculate total pages for pagination
@@ -591,11 +590,6 @@ const updateEmployeeProfile = async (id, updateData) => {
     }
   };
   
-
-
-
-
-
 
 
 

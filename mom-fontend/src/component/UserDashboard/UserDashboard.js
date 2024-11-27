@@ -6,7 +6,8 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { logoutUser, listEmployee,} from "../../services/api";
 import AuthService from "../AuthService/Authservice";
-import { Link } from "react-router-dom";
+import { Link ,useLocation} from "react-router-dom";
+import logo from "../../assets/logo.png";
 
 
 function UserDashboard() {
@@ -19,6 +20,10 @@ function UserDashboard() {
     const [searchKey, setSearchKey] = useState("");
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate();
+
+    const location = useLocation();
+
+    const { profilePicture } = location.state || {};
 
     const [addEmployeeForm, setAddEmployeeForm] = useState({
         employeeName: "",
@@ -44,14 +49,10 @@ function UserDashboard() {
     const fetchEmployees = async (page, searchKey = "") => {
         try {
             setLoading(true);
-            
-            const response = await listEmployee(page, 5, '-1', searchKey);
-            console.log("API Response:", response.data.employeeData);
+            const response = await listEmployee(page, 5, '-1', searchKey);  
             setEmployees(response.data.employeeData || []);
             setTotalEmployees(response.data.totalEmployees || 0);
             setTotalPages(response.data.totalPages || 0);
-            console.log("ffffffffffffffffff", response.data.totalEmployees)
-            const totalEmployees = response.data.totalEmployees;
         } catch (error) {
             console.error("Error fetching employees:", error);
             setEmployees([]);
@@ -62,34 +63,31 @@ function UserDashboard() {
         }
     };
 
+    // Handle search input changes with debounce
     const handleSearchChange = (e) => {
         const searchValue = e.target.value;
         setSearchKey(searchValue);
 
-
         if (searchTimeout.current) {
             clearTimeout(searchTimeout.current);
         }
-
-
         searchTimeout.current = setTimeout(() => {
             fetchEmployees(page, searchValue);
         }, 500);
     };
 
-
+    // Handle page change
     const handlePageChange = (newPage) => {
         setPage(newPage);
     };
 
-
+    // Get the employee's name after login and fetch employees
     useEffect(() => {
-        fetchEmployees(page, searchKey); 
-        const name = AuthService.getEmployeeName();
+        fetchEmployees(page, searchKey);
+        const name = AuthService.getEmployeeName();  // Fetch employee name from AuthService
         console.log('Fetched Employee Name:', name); 
-        setEmployeeName(name);
-    }, [page, searchKey]);
-    
+        setEmployeeName(name);  // Set the employee name in state
+    }, [page, searchKey]);  // Re-run the effect on page or searchKey change
 
 
     const handleLogout = async () => {
@@ -163,10 +161,11 @@ function UserDashboard() {
                                         data-bs-toggle="dropdown"
                                         aria-expanded="false"
                                     >
-                                        <img
-                                            src="/assets/images/profile-image.jpg"
+                                       <img
+                                            src={profilePicture || logo}
                                             alt="Profile"
-                                            className="profile-avatar"
+                                            width="50"
+                                            height="50"
                                         />
                                         {employeeName || 'guest'}
                                     </a>

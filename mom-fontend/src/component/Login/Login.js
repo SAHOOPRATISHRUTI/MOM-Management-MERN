@@ -11,8 +11,9 @@ import { validateEmail, validatePassword } from '../../validator/validator';
 import { generateOTP } from '../../services/api';
 import meeting from '../../assets/meeting.png';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { GoogleLogin, useGoogleLogin } from '@react-oauth/google';
+import {  useGoogleLogin } from '@react-oauth/google';
 import { googleAuth } from '../../services/api';
+
 
 
 function Login() {
@@ -32,16 +33,21 @@ function Login() {
         console.log(result);
         console.log("ffffffffffff", result.data.userData)
         const { email, name, image, authToken } = result.data.userData;
+        const img =result.data.userData.profilePicture;
         const obj = { email, name, authToken, image };
-        localStorage.setItem('userinfo', JSON.stringify(obj));
+        localStorage.setItem('employeeName',result.data.userData.employeeName);
+        localStorage.setItem('authToken', result.data.userData.token);
+       
+        toast.success('Successful Login')
 
-        navigate('/user-dashboard');
+        navigate('/user-dashboard',{state:{profilePicture:img}});
       } else {
         console.log(authResult);
         throw new Error('No authorization code received');
       }
-    } catch (e) {
-      console.log('Error during Google login:', e);
+    } catch (error) {
+      console.log('Error during Google login:', error);
+      toast.error('Error during Google login')
     }
   };
 
@@ -72,6 +78,7 @@ function Login() {
       console.log(response.data.token);
 
       localStorage.setItem('authToken', response.data.token);
+      localStorage.setItem('employeeName', response.data.employeeName);
 
       const userRole = response.data.role;
       console.log(userRole);

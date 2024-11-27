@@ -245,10 +245,10 @@ const listEmployee = async (page = 1, limit = 5, order = '-1', searchKey = '') =
   try {
     console.log("Sending request to list employees with filters:", "page:", page, "limit:", limit, "order:", order, "searchKey:", searchKey);
 
-    // Add default value for includeDeactivated (false if not provided)
-    const includeDeactivated = 'true'; // You can change this to 'false' depending on the business logic
 
-    // Build the query params based on the provided filters, page, limit, order, and searchKey
+    const includeDeactivated = 'true'; 
+
+
     const params = {
       page,
       limit,
@@ -258,7 +258,6 @@ const listEmployee = async (page = 1, limit = 5, order = '-1', searchKey = '') =
 
     console.log('Requesting employees with params:', params);
 
-    // Make the GET request to the API
     const response = await axios.get(`${API_URL}/employees`, {
       params,
       headers: { 
@@ -326,6 +325,7 @@ const api = axios.create({
 
 const googleAuth = (code) => api.get(`/google?code=${code}`);
 
+export const googleSignUp = (code) => api.post(`/google-signup?code=${code}`);
 export { 
          loginUser,
          generateOTP,

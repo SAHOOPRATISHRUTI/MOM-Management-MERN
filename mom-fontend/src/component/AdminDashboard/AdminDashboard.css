@@ -58,10 +58,10 @@
     font-size: 23px;
 }
   
-  .nav-link img {
-    width: 20px;
-    height: 20px;
-  }
+.nav-link img {
+  width: 36px;
+  height: 35px;
+}
   
   .nav-item.active .nav-link :hover {
     background: linear-gradient(294deg, #dafaff, #dfdfdf);

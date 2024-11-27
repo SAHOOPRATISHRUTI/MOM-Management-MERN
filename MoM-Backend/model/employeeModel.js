@@ -55,6 +55,16 @@ const EmployeeUserSchema = new mongoose.Schema(
     unit: {
       type: String,
     },
+    profilePicture: {
+      type: String, // URL or path to the profile picture
+      default: null,
+      validate: {
+        validator: function (v) {
+          return v == null || validator.isURL(v); // Ensure the value is either null or a valid URL
+        },
+        message: '{VALUE} is not a valid URL.',
+      },
+    },
     isActive: {
       type: Boolean,
       default: true,

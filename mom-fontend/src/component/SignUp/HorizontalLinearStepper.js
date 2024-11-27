@@ -1,54 +1,97 @@
-import * as React from 'react';
-import Box from '@mui/material/Box';
-import Stepper from '@mui/material/Stepper';
-import Step from '@mui/material/Step';
-import StepLabel from '@mui/material/StepLabel';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
-import PersonIcon from '@mui/icons-material/Person';
-import PhoneIcon from '@mui/icons-material/Phone';
-import EmailIcon from '@mui/icons-material/Email';
-import HomeIcon from '@mui/icons-material/Home';
-import LockIcon from '@mui/icons-material/Lock';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import CircularProgress from '@mui/material/CircularProgress';
-import { sendOtp, verifyOtpforSignUp, signupUser } from '../../services/api';
-import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import * as React from "react";
+import Box from "@mui/material/Box";
+import Stepper from "@mui/material/Stepper";
+import Step from "@mui/material/Step";
+import StepLabel from "@mui/material/StepLabel";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
+import PersonIcon from "@mui/icons-material/Person";
+import PhoneIcon from "@mui/icons-material/Phone";
+import EmailIcon from "@mui/icons-material/Email";
+import HomeIcon from "@mui/icons-material/Home";
+import LockIcon from "@mui/icons-material/Lock";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import CircularProgress from "@mui/material/CircularProgress";
+import { sendOtp, verifyOtpforSignUp, signupUser } from "../../services/api";
+import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import {  useGoogleLogin } from '@react-oauth/google';
+import { googleSignUp } from '../../services/api';
 
-const steps = ['Personal Information', 'Contact Information', 'Create Password'];
+
+const steps = [
+  "Personal Information",
+  "Contact Information",
+  "Create Password",
+];
 
 export default function HorizontalLinearStepper() {
+
+
+  const responseGoogle = async (authResult) => {
+    try {
+      if (authResult["code"]) {
+        const result = await googleSignUp(authResult["code"]);
+        console.log(result);
+        
+        // Accessing the profile picture
+        const { email, name, image, authToken } = result.data.userData;
+        console.log("Profile Image:", result.data.userData.profilePicture);  
+        const img = result.data.userData.profilePicture;
+
+        const obj = { email, name, authToken, image };
+        localStorage.setItem('employeeName', result.data.userData.employeeName);
+        localStorage.setItem('authToken', result.data.userData.token);
+        toast.success('Successful Login');
+  
+        navigate('/dashboard' ,{state:{profilePicture:img}});
+      } else {
+        console.log(authResult);
+        throw new Error('No authorization code received');
+      }
+    } catch (error) {
+      console.log('Error during Google login:', error);
+      toast.error('Error during Google login');
+    }
+  };
+  
+
+  const googlesignup = useGoogleLogin({
+    onSuccess: responseGoogle,
+    onError: responseGoogle,
+    flow: "auth-code", 
+  });
+
   const [activeStep, setActiveStep] = React.useState(0);
   const [skipped, setSkipped] = React.useState(new Set());
   const navigate = useNavigate();
 
   // Step 1 inputs
-  const [employeeName, setemployeeName] = React.useState('');
-  const [phone, setPhone] = React.useState('');
+  const [employeeName, setemployeeName] = React.useState("");
+  const [phone, setPhone] = React.useState("");
 
   // Step 2 inputs
-  const [email, setEmail] = React.useState('');
-  const [address, setAddress] = React.useState('');
-  const [role, setRole] = React.useState('user');
+  const [email, setEmail] = React.useState("");
+  const [address, setAddress] = React.useState("");
+  const [role, setRole] = React.useState("user");
 
   // Step 3 inputs
-  const [password, setPassword] = React.useState('');
+  const [password, setPassword] = React.useState("");
 
   // Error states
-  const [employeeNameError, setemployeeNameError] = React.useState('');
-  const [phoneError, setPhoneError] = React.useState('');
-  const [emailError, setEmailError] = React.useState('');
-  const [addressError, setAddressError] = React.useState('');
-  const [passwordError, setPasswordError] = React.useState('');
+  const [employeeNameError, setemployeeNameError] = React.useState("");
+  const [phoneError, setPhoneError] = React.useState("");
+  const [emailError, setEmailError] = React.useState("");
+  const [addressError, setAddressError] = React.useState("");
+  const [passwordError, setPasswordError] = React.useState("");
 
   // Email Verified state
   const [emailVerified, setEmailVerified] = React.useState(false);
 
   // OTP states
-  const [otp, setOtp] = React.useState('');
+  const [otp, setOtp] = React.useState("");
   const [otpSent, setOtpSent] = React.useState(false);
   const [otpVerified, setOtpVerified] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
@@ -57,43 +100,42 @@ export default function HorizontalLinearStepper() {
   const isStepOptional = (step) => step === 1;
   const isStepSkipped = (step) => skipped.has(step);
 
-
   const handleNext = () => {
     let hasError = false;
 
     // Step 1 - Personal Information validation
     if (activeStep === 0) {
       if (!employeeName || employeeName.length < 3) {
-        setemployeeNameError('EmployeeName must be at least 3 characters.');
+        setemployeeNameError("EmployeeName must be at least 3 characters.");
         hasError = true;
       } else {
-        setemployeeNameError('');
+        setemployeeNameError("");
       }
       if (!phone || !/^\d{10}$/.test(phone)) {
-        setPhoneError('Phone number must be 10 digits.');
+        setPhoneError("Phone number must be 10 digits.");
         hasError = true;
       } else {
-        setPhoneError('');
+        setPhoneError("");
       }
     }
 
     // Step 2 - Contact Information validation
     if (activeStep === 1) {
       if (!email || !/\S+@\S+\.\S+/.test(email)) {
-        setEmailError('Invalid email address.');
+        setEmailError("Invalid email address.");
         hasError = true;
       } else {
-        setEmailError('');
+        setEmailError("");
       }
       if (!address) {
-        setAddressError('Address is required.');
+        setAddressError("Address is required.");
         hasError = true;
       } else {
-        setAddressError('');
+        setAddressError("");
       }
 
       if (!otpVerified) {
-        toast.warn('Please verify your email before proceeding.');
+        toast.warn("Please verify your email before proceeding.");
         hasError = true;
       }
     }
@@ -101,13 +143,13 @@ export default function HorizontalLinearStepper() {
     // Step 3 - Password validation
     if (activeStep === 2) {
       if (!password || password.length < 8) {
-        setPasswordError('Password must be at least 8 characters.');
+        setPasswordError("Password must be at least 8 characters.");
         hasError = true;
       } else {
-        setPasswordError('');
+        setPasswordError("");
       }
       if (!role) {
-        toast.warn('Role is required.');
+        toast.warn("Role is required.");
         hasError = true;
       }
     }
@@ -128,7 +170,7 @@ export default function HorizontalLinearStepper() {
     setLoading(true);
 
     try {
-      const response = await sendOtp(email)
+      const response = await sendOtp(email);
       toast.success(response.success.message);
       console.log(response.success.message);
 
@@ -145,7 +187,6 @@ export default function HorizontalLinearStepper() {
     }
   };
 
-
   const handleVerifyOtp = async () => {
     try {
       const response = await verifyOtpforSignUp(email, otp);
@@ -160,85 +201,89 @@ export default function HorizontalLinearStepper() {
     }
   };
 
-
   const handleSubmit = async () => {
     try {
-      const response = await signupUser(employeeName, email, phone, password, address, role);
+      const response = await signupUser(
+        employeeName,
+        email,
+        phone,
+        password,
+        address,
+        role
+      );
       if (response.success) {
         toast.success(response.message);
         setTimeout(() => {
-          navigate('/');
+          navigate("/");
         }, 3000);
       } else {
         toast.error(response.message);
       }
     } catch (error) {
-      toast.error(error.message || 'An unexpected error occurred');
+      toast.error(error.message || "An unexpected error occurred");
     }
   };
-
 
   const handleChange = (event, type) => {
     const value = event.target.value;
 
-    if (type === 'employeeName') {
+    if (type === "employeeName") {
       setemployeeName(value);
       // Check if name is empty or less than 4 characters
       if (!value) {
-        setemployeeNameError('This field is required');
+        setemployeeNameError("This field is required");
       } else if (value.length <= 3) {
-        setemployeeNameError('employeeName must be greater than 3 characters');
+        setemployeeNameError("employeeName must be greater than 3 characters");
       } else {
-        setemployeeNameError('');
+        setemployeeNameError("");
       }
     }
 
-    if (type === 'phone') {
+    if (type === "phone") {
       setPhone(value);
       // Check if phone number is empty or not 10 characters
       if (!value) {
-        setPhoneError('This field is required');
+        setPhoneError("This field is required");
       } else if (value.length !== 10) {
-        setPhoneError('Mobile number must be 10 digits');
+        setPhoneError("Mobile number must be 10 digits");
       } else {
-        setPhoneError('');
+        setPhoneError("");
       }
     }
 
-    if (type === 'email') {
+    if (type === "email") {
       setEmail(value);
       // Check if email is valid
       if (/\S+@\S+\.\S+/.test(value)) {
-        setEmailError('');
+        setEmailError("");
       } else {
-        setEmailError('Invalid email address');
+        setEmailError("Invalid email address");
       }
     }
 
-    if (type === 'address') {
+    if (type === "address") {
       setAddress(value);
       // Check if address is empty
       if (!value) {
-        setAddressError('This field is required');
+        setAddressError("This field is required");
       } else {
-        setAddressError('');
+        setAddressError("");
       }
     }
 
-    if (type === 'password') {
+    if (type === "password") {
       setPassword(value);
       // Check if password is at least 8 characters
       if (value.length >= 8) {
-        setPasswordError('');
+        setPasswordError("");
       } else {
-        setPasswordError('Password must be at least 8 characters');
+        setPasswordError("Password must be at least 8 characters");
       }
     }
   };
 
-
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: "100%" }}>
       <Stepper activeStep={activeStep}>
         {steps.map((label, index) => (
           <Step key={label}>
@@ -249,7 +294,9 @@ export default function HorizontalLinearStepper() {
 
       {activeStep === steps.length ? (
         <Box>
-          <Typography sx={{ mt: 2, mb: 1 }}>All steps completed - you're finished</Typography>
+          <Typography sx={{ mt: 2, mb: 1 }}>
+            All steps completed - you're finished
+          </Typography>
           <Button onClick={handleSubmit}>Finish</Button>
         </Box>
       ) : (
@@ -263,7 +310,7 @@ export default function HorizontalLinearStepper() {
                 fullWidth
                 variant="outlined"
                 value={employeeName}
-                onChange={(e) => handleChange(e, 'employeeName')}
+                onChange={(e) => handleChange(e, "employeeName")}
                 error={Boolean(employeeNameError)}
                 helperText={employeeNameError}
                 sx={{ mt: 2 }}
@@ -280,7 +327,7 @@ export default function HorizontalLinearStepper() {
                 fullWidth
                 variant="outlined"
                 value={phone}
-                onChange={(e) => handleChange(e, 'phone')}
+                onChange={(e) => handleChange(e, "phone")}
                 error={Boolean(phoneError)}
                 helperText={phoneError}
                 sx={{ mt: 2 }}
@@ -302,7 +349,7 @@ export default function HorizontalLinearStepper() {
                 fullWidth
                 variant="outlined"
                 value={email}
-                onChange={(e) => handleChange(e, 'email')}
+                onChange={(e) => handleChange(e, "email")}
                 error={Boolean(emailError)}
                 helperText={emailError}
                 sx={{ mt: 2 }}
@@ -315,7 +362,7 @@ export default function HorizontalLinearStepper() {
                   endAdornment: email && !otpVerified && (
                     <InputAdornment position="end">
                       <Button onClick={handleSendOtp} disabled={loading}>
-                        {loading ? <CircularProgress size={20} /> : 'Send OTP'}
+                        {loading ? <CircularProgress size={20} /> : "Send OTP"}
                       </Button>
                     </InputAdornment>
                   ),
@@ -341,7 +388,7 @@ export default function HorizontalLinearStepper() {
                 fullWidth
                 variant="outlined"
                 value={address}
-                onChange={(e) => handleChange(e, 'address')}
+                onChange={(e) => handleChange(e, "address")}
                 error={Boolean(addressError)}
                 helperText={addressError}
                 sx={{ mt: 2 }}
@@ -391,14 +438,27 @@ export default function HorizontalLinearStepper() {
             </>
           )}
 
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-            <Button disabled={activeStep === 0} onClick={handleBack} sx={{ mr: 1 }}>
+
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+            <Button
+              disabled={activeStep === 0}
+              onClick={handleBack}
+              sx={{ mr: 1 }}
+            >
               Back
             </Button>
             <Button onClick={handleNext}>
-              {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
+              {activeStep === steps.length - 1 ? "Finish" : "Next"}
             </Button>
           </Box>
+
+          
+          <div className="login-page">
+            <button className="login-with-google-btn" onClick={googlesignup}>
+              Sign up with Google
+            </button>
+          </div>
+
         </Box>
       )}
     </Box>

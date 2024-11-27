@@ -25,16 +25,8 @@ function App() {
     setProfileOpen(false);
   };
 
-  const GoogleWrapper = ()=>(
-    <GoogleOAuthProvider clientId="32530723892-b87876uso7ooi2c8mrc3nh3305qo289p.apps.googleusercontent.com">
-      <Login></Login>
-    </GoogleOAuthProvider>
-  )
-
   return (
-
- 
-
+    <GoogleOAuthProvider clientId="32530723892-b87876uso7ooi2c8mrc3nh3305qo289p.apps.googleusercontent.com">
       <Router>
         <ToastContainer
           position="top-right"
@@ -49,17 +41,16 @@ function App() {
         />
 
         <Routes>
-          <Route path="/" element={<GoogleWrapper />} />
+          <Route path="/" element={<Login />} />
           <Route path="/signin" element={<Signin />} />
           <Route
             path="/user-dashboard"
-            element={
-              
-                <UserDashboard handleProfileOpen={handleProfileOpen} />
-              
-            }
+            element={<UserDashboard handleProfileOpen={handleProfileOpen} />}
           />
-          <Route path="/profile" element={<Profile open={profileOpen} handleClose={handleProfileClose} />} />
+          <Route
+            path="/profile"
+            element={<Profile open={profileOpen} handleClose={handleProfileClose} />}
+          />
           <Route path="/verify-otp" element={<OTPVerification />} />
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -73,7 +64,7 @@ function App() {
           />
         </Routes>
       </Router>
-   
+    </GoogleOAuthProvider>
   );
 }
 
