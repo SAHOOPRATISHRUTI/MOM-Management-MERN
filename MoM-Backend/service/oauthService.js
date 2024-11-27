@@ -3,7 +3,9 @@ const axios = require('axios');
 const Employee = require('../model/employeeModel');
 const authMiddleware = require('../helpers/Middleware');
 
+
 const googleAuthService = {
+  // Fetch tokens from Google using the code
   async getGoogleTokens(code) {
     const googleRes = await oauth2client.getToken(code);
     oauth2client.setCredentials(googleRes.tokens);
@@ -14,25 +16,24 @@ const googleAuthService = {
     return googleRes.tokens;
   },
 
+  // Retrieve user info from Google API using the access token
   async getGoogleUserInfo(accessToken) {
     const userRes = await axios.get(
       `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${accessToken}`
     );
-    return userRes.data; 
+    return userRes.data;
   },
 
+  // Find the employee by their email in the database
   async findEmployeeByEmail(email) {
     const user = await Employee.findOne({ email });
-  console.log(user);
-  
-    // Check if the user exists and is active
     if (!user || !user.isActive) {
       throw new Error('User not found or account is inactive');
     }
     return user;
   },
-  
 
+  // Generate authentication token
   async generateAuthToken(user, name) {
     return await authMiddleware.generateToken({
       userId: user._id,
@@ -40,74 +41,62 @@ const googleAuthService = {
       email: user.email,
     });
   },
-};
 
-const googleSignUpService = async (code) => {
-    try {
-      if (!code) {
-        throw new Error('No code provided');
-      }
-  
-      console.log("Received Google Code for Signup---", code);
-  
-      const googleRes = await oauth2client.getToken(code);
-      oauth2client.setCredentials(googleRes.tokens);
-  
-      if (!googleRes.tokens || !googleRes.tokens.access_token) {
-        throw new Error('Failed to get valid access token from Google');
-      }
-  
-      console.log("Google Token Response:", googleRes.tokens);
-  
-      const userRes = await axios.get(`https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleRes.tokens.access_token}`);
-  
-      console.log("Google User Info:", userRes.data); // Log entire response to verify if `name` is present
-      const { email, name, picture } = userRes.data; // Ensure `name` is correctly accessed
-  
-      let user = await Employee.findOne({ email });
-  
-      if (user) {
-        throw new Error('User already exists. Please log in instead.');
-      }
-  
-      const newUser = new Employee({
-        employeeName: name,
-        email,
-        profilePicture: picture,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-  
-      await newUser.save();
-  
-      console.log("New User Created:", newUser);
-  
-      // Generate a token for the new user
-      const token = await authMiddleware.generateToken({
-        userId: newUser._id,
+  // Handle Google Signup (create new user if doesn't exist)
+  async googleSignUpService(code) {
+    const googleRes = await oauth2client.getToken(code);
+    oauth2client.setCredentials(googleRes.tokens);
+
+    if (!googleRes.tokens || !googleRes.tokens.access_token) {
+      throw new Error('Failed to get valid access token from Google');
+    }
+
+    const userRes = await axios.get(
+      `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleRes.tokens.access_token}`
+    );
+    const { email, name, picture } = userRes.data;
+
+    // Check if user already exists
+    let user = await Employee.findOne({ email });
+    if (user) {
+      throw new Error('User already exists. Please log in instead.');
+    }
+
+    // Create a new user in the database
+    const newUser = new Employee({
+      employeeName: name,
+      email,
+      profilePicture: picture,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    await newUser.save();
+
+    const token = await authMiddleware.generateToken({
+      userId: newUser._id,
+      employeeName: newUser.employeeName,
+      email: newUser.email,
+    });
+
+    return {
+      message: 'User successfully registered.',
+      userData: {
+        _id: newUser._id,
         employeeName: newUser.employeeName,
         email: newUser.email,
-      });
-  
-      return {
-        message: 'User successfully registered.',
-        userData: {
-          _id: newUser._id,
-          employeeName: newUser.employeeName,
-          email: newUser.email,
-          profilePicture: newUser.profilePicture,
-          token,
-        },
-      };
-    } catch (err) {
-      console.error('Google signup error:', err.message);
-      throw new Error('Internal Server Error');
-    }
-  };
-  
+        profilePicture: newUser.profilePicture,
+        token,
+      },
+    };
+  },
+};
+
+
+
+
 
 module.exports = { 
     googleAuthService,
-    googleSignUpService
+ 
 };
