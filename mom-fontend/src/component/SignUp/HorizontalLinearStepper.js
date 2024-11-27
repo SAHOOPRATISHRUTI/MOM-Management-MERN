@@ -29,26 +29,24 @@ const steps = [
 
 export default function HorizontalLinearStepper() {
 
-
   const responseGoogle = async (authResult) => {
     try {
-      if (authResult["code"]) {
-        const result = await googleSignUp(authResult["code"]);
-        console.log(result);
-        
-        // Accessing the profile picture
-        const { email, name, image, authToken } = result.data.userData;
-        console.log("Profile Image:", result.data.userData.profilePicture);  
-        const img = result.data.userData.profilePicture;
+      if (authResult?.code) {
+        const result = await googleSignUp(authResult.code);
+        console.log(result); 
+        console.log("fffffffffff",result.data);
 
-        const obj = { email, name, authToken, image };
-        localStorage.setItem('employeeName', result.data.userData.employeeName);
-        localStorage.setItem('authToken', result.data.userData.token);
-        toast.success('Successful Login');
+        const { email, name, authToken, profilePicture } = result.data.data;
+        console.log("Profile Image:", profilePicture);
   
-        navigate('/dashboard' ,{state:{profilePicture:img}});
+        const img = profilePicture;
+  
+        localStorage.setItem('employeeName', result.data.data.employeeName);
+        localStorage.setItem('authToken', result.data.data.token);
+  
+        toast.success('Successful Login');
+        navigate('/dashboard', { state: { profilePicture: img } });
       } else {
-        console.log(authResult);
         throw new Error('No authorization code received');
       }
     } catch (error) {
@@ -57,12 +55,12 @@ export default function HorizontalLinearStepper() {
     }
   };
   
-
   const googlesignup = useGoogleLogin({
     onSuccess: responseGoogle,
     onError: responseGoogle,
     flow: "auth-code", 
   });
+  
 
   const [activeStep, setActiveStep] = React.useState(0);
   const [skipped, setSkipped] = React.useState(new Set());

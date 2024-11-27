@@ -11,13 +11,14 @@ import { validateEmail, validatePassword } from '../../validator/validator';
 import { generateOTP } from '../../services/api';
 import meeting from '../../assets/meeting.png';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import {  useGoogleLogin } from '@react-oauth/google';
+import { useGoogleLogin } from '@react-oauth/google';
 import { googleAuth } from '../../services/api';
 
 
 
 function Login() {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -25,36 +26,46 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
 
-  const responseGoogle = async (authResult) => {
-    try {
-      if (authResult["code"]) {
-       
-        const result = await googleAuth(authResult["code"]); 
-        console.log(result);
-        console.log("ffffffffffff", result.data.userData)
-        const { email, name, image, authToken } = result.data.userData;
-        const img =result.data.userData.profilePicture;
-        const obj = { email, name, authToken, image };
-        localStorage.setItem('employeeName',result.data.userData.employeeName);
-        localStorage.setItem('authToken', result.data.userData.token);
-       
-        toast.success('Successful Login')
 
-        navigate('/user-dashboard',{state:{profilePicture:img}});
+  const responseGoogle = async (authResult) => {
+  
+    try {
+      if (authResult?.code) {
+    
+        const result = await googleAuth(authResult.code);
+        console.log("Google Auth Result:", result);
+        console.log("fffffffffff",result.data);
+
+        if (result.data.success) {
+          console.log("ff",result.data.success);
+          
+          const { email, name, profilePicture, token, employeeName } = result.data.data;
+
+          localStorage.setItem('employeeName', employeeName);
+          localStorage.setItem('authToken', token);
+
+          toast.success(result.data.message);
+
+          navigate('/dashboard', { state: { profilePicture } });
+        } else {
+          toast.error(result?.data?.message || 'Login failed. Please try again.');
+        }
       } else {
-        console.log(authResult);
-        throw new Error('No authorization code received');
+        console.error('No authorization code received:', authResult);
+        throw new Error('Authorization code missing');
       }
     } catch (error) {
-      console.log('Error during Google login:', error);
-      toast.error('Error during Google login')
+      toast.error(error.response.data.message);
+      console.error('Error during Google login:', error.response.data.message);
+      
     }
   };
 
+  // Set up the Google login hook with onSuccess and onError
   const googleLogin = useGoogleLogin({
     onSuccess: responseGoogle,
     onError: responseGoogle,
-    flow: "auth-code", 
+    flow: "auth-code",
   });
 
 
@@ -201,11 +212,11 @@ function Login() {
               </form>
 
               <div className="login-page">
-                
+
                 <button className='login-with-google-btn' onClick={googleLogin}>
                   Sign in with Google
                 </button>
-                
+
               </div>
 
 

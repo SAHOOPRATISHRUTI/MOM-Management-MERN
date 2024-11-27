@@ -30,7 +30,7 @@ router.post('/deactivate/:employeeId', Middleware.authenticateToken, employeeCon
 
 router.put('/update-profile/:id', employeeController.updateEmployeeProfileController);
 
-router.get('/google',authController.googleLogin)
-router.post('/google-signup',authController.googleSignUp)
+// router.get('/google',authController.googleLogin)
+// router.post('/google-signup',authController.googleSignUp)
 
 module.exports = router;

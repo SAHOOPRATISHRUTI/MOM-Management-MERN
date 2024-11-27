@@ -66,7 +66,35 @@ const messages = {
     invalidTokenFormat:'Invalid Token Format',
     createdSucess:'Employee Create sucessfully',
     deactivated:'Employee deactivated Sucessfully',
-    activated:'Employee activated Sucessfully'
+    activated:'Employee activated Sucessfully',
+     GOOGLE_SIGNUP_SUCCESS_MSG :'User successfully registered.',
+     GOOGLE_SIGNUP_FAIL_MSG :'User already exists. Please log in instead.',
+     GOOGLE_SIGNUP_ERROR_MSG :'Internal Server Error',
+     GOOGLE_MISSING_CODE_MSG :'No code provided',
+     GOOGLE_ACCESS_TOKEN_FAIL_MSG :'Failed to get valid access token from Google'
 };
 
 module.exports = messages;
+
+// constants/messages.js
+const MESSAGES = {
+    SUCCESS: {
+      FETCH_SUCCESS: "Data fetched successfully.",
+      CREATED_SUCCESS: "Data created successfully.",
+      UPDATED_SUCCESS: "Data updated successfully.",
+      DELETED_SUCCESS: "Data deleted successfully.",
+    },
+    ERROR: {
+      INTERNAL_SERVER_ERROR: "Internal server error occurred.",
+      NOT_FOUND: "The requested resource was not found.",
+      UNAUTHORIZED: "You are not authorized to perform this action.",
+      BAD_REQUEST: "Invalid request parameters.",
+    },
+    USER: {
+      ACTIVE: "Login Successfully.",
+      INACTIVE: "User is not active. Please contact the administrator.",
+      NOT_FOUND: "User not found. Please register.",
+    },
+  };
+  
+  module.exports = MESSAGES;

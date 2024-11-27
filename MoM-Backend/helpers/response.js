@@ -23,14 +23,11 @@ const failResponse = (req, res, data, message, statusCode = 400) => {
 };
 
 
-
-const errorResponse = (req, res, message, errorKey = 500) => {
-
-  
+const errorResponse = (res, message, errorKey = 500) => {
   return res.status(errorKey).send({
     error: true,
     success: false,
-    message: message, 
+    message: message,
     data: null
   });
 };
