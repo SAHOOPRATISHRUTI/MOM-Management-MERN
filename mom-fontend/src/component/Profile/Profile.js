@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
-import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button, Grid, InputAdornment } from '@mui/material';
-import { AccountCircle, Email, Phone, Home, Work, Business } from '@mui/icons-material';
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Button,
+  Grid,
+  InputAdornment,
+  Avatar,
+  IconButton,
+} from '@mui/material';
+import { AccountCircle, Email, Phone, Home, Work, Business, PhotoCamera } from '@mui/icons-material';
 import './Profile.css';
 
 function Profile({ open, handleClose }) {
@@ -12,15 +23,26 @@ function Profile({ open, handleClose }) {
     address: '',
     designation: '',
     department: '',
-    unit: ''
+    unit: '',
   });
+
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [preview, setPreview] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
+  };
+
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfilePicture(file);
+      setPreview(URL.createObjectURL(file));
+    }
   };
 
   return (
@@ -34,6 +56,32 @@ function Profile({ open, handleClose }) {
       <DialogTitle>Update Profile</DialogTitle>
       <DialogContent>
         <Grid container spacing={3} className="custom-grid-spacing">
+          {/* Profile Picture Section */}
+          <Grid item xs={12} className="profile-picture-section">
+            <Avatar
+              src={preview || 'https://via.placeholder.com/150'}
+              alt="Profile Picture"
+              sx={{ width: 100, height: 100, margin: 'auto' }}
+            />
+            <input
+              accept="image/*"
+              style={{ display: 'none' }}
+              id="upload-profile-picture"
+              type="file"
+              onChange={handleProfilePictureChange}
+            />
+            <label htmlFor="upload-profile-picture">
+              <IconButton
+                color="primary"
+                aria-label="upload picture"
+                component="span"
+                sx={{ display: 'block', margin: 'auto', marginTop: 1 }}
+              >
+                <PhotoCamera />
+              </IconButton>
+            </label>
+          </Grid>
+
           {/* First Row (Two Columns) */}
           <Grid item xs={12} sm={6}>
             <TextField
@@ -195,7 +243,7 @@ function Profile({ open, handleClose }) {
         <Button onClick={handleClose} color="primary">
           Cancel
         </Button>
-        <Button onClick={() => alert('Update Profile')} color="primary">
+        <Button onClick={() => alert('Profile Updated')} color="primary">
           Update
         </Button>
       </DialogActions>

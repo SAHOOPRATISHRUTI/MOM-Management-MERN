@@ -8,7 +8,9 @@ import { logoutUser, listEmployee,} from "../../services/api";
 import AuthService from "../AuthService/Authservice";
 import { Link ,useLocation} from "react-router-dom";
 import logo from "../../assets/logo.png";
-
+import meetingicon from "../../assets/meetingicon.png"
+import action from '../../assets/double-tap.png'
+import manage from "../../assets/management.png"
 
 function UserDashboard() {
     const [employeeName, setEmployeeName] = useState('');
@@ -24,6 +26,20 @@ function UserDashboard() {
     const location = useLocation();
 
     const { profilePicture } = location.state || {};
+    const baseUrl = 'http://localhost:5000/';
+    let formattedProfilePicture;
+    
+    // Check if `profilePicture` exists and apply the condition
+    if (profilePicture) {
+        if (profilePicture.startsWith('https://lh3.googleusercontent.com/a')) {
+            formattedProfilePicture = profilePicture;
+        } else {
+            formattedProfilePicture = `${baseUrl}${profilePicture}`;
+        }
+    } else {
+        //formattedProfilePicture = `${baseUrl}default-profile-picture.png`; // Fallback to a default profile picture if none is provided
+    }
+    
 
     const [addEmployeeForm, setAddEmployeeForm] = useState({
         employeeName: "",
@@ -162,7 +178,7 @@ function UserDashboard() {
                                         aria-expanded="false"
                                     >
                                        <img
-                                            src={profilePicture || logo}
+                                            src={formattedProfilePicture || logo}
                                             alt="Profile"
                                             width="50"
                                             height="50"
@@ -202,19 +218,19 @@ function UserDashboard() {
                 <ul className="navbar-nav me-auto mt-5">
                     <li className="nav-item">
                         <a className="nav-link text-white d-flex gap-2 align-items-center">
-                            <img src="assets/images/meeting.png" alt="Meetings" />
+                            <img src={meetingicon} alt="Meetings" />
                             <span className="nav-link-label">Meetings</span>
                         </a>
                     </li>
                     <li className="nav-item">
                         <a className="nav-link text-white d-flex gap-2 align-items-center">
-                            <img src="assets/images/clipboard.png" alt="Action" />
+                            <img src={action} alt="Action" />
                             <span className="nav-link-label">Action</span>
                         </a>
                     </li>
                     <li className="nav-item">
                         <a className="nav-link text-white d-flex gap-2 align-items-center">
-                            <img src="assets/images/settings.png" alt="Manage" />
+                            <img src={manage} alt="Manage" />
                             <span className="nav-link-label">Manage</span>
                         </a>
                     </li>

@@ -37,6 +37,27 @@ router.get('/employees', employeeController.listEmployee);
 router.post('/activate/:employeeId', Middleware.authenticateToken, employeeController.activateEmployee);
 router.post('/deactivate/:employeeId', Middleware.authenticateToken, employeeController.deactivateEmployee);
 
-router.put('/update-profile/:id', upload.single('profileimage'), employeeController.updateEmployeeProfileController); // Handles profile image upload for update
+//router.put('/update-profile/:id', upload.single('profilePicture'), employeeController.editProfile); // Handles profile image upload for update
+
+router.put('/profile/:id', upload.single('profilePicture'), async (req, res) => {
+  // Now, when the request is made to /profile/:id, the id will be accessible in req.params
+  const { id } = req.params;
+  const updateData = req.body;
+
+  if (req.file) {
+    updateData.profilePicture = req.file.path; // Store the file path if a file is uploaded
+  }
+
+  try {
+    const updatedEmployee = await employeeController.editProfile(req, res);  // Pass req and res to controller
+  } catch (err) {
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+});
+
+
 
 module.exports = router;

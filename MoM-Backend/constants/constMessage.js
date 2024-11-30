@@ -83,6 +83,7 @@ const messages = {
      CREATED_SUCCESS: "Data created successfully.",
      UPDATED_SUCCESS: "Data updated successfully.",
      DELETED_SUCCESS: "Data deleted successfully.",
+     updateDatafail:"Data updated Fail"
 
 };
 

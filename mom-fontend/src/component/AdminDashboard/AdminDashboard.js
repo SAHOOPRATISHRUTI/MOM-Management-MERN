@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import "./AdminDashboard.css";
 import logo1 from "../../assets/logo1.png";
 import { toast } from "react-toastify";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation,Link } from "react-router-dom";
 import { TextField, MenuItem, Button, InputLabel, Select, FormControl, FormHelperText, Switch, FormControlLabel } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { logoutUser, addEmployee, listEmployee, activateEmployee, deactiveEmployee, } from "../../services/api";
@@ -305,7 +305,8 @@ const MeetingPage = () => {
                                 </li>
                                 <li className="nav-item">
                                     <a className="nav-link" href="#">
-                                        <i className="bi bi-person-circle"></i> Profile
+                                        <i className="bi bi-person-circle"></i> 
+                                        <Link to='/profile'>Profile</Link>
                                     </a>
                                 </li>
                                 <li className="nav-item">
@@ -336,8 +337,8 @@ const MeetingPage = () => {
                                         aria-labelledby="navbarDropdown"
                                     >
                                         <li>
-                                            <a className="dropdown-item" href="#">
-                                                Account
+                                            <a className="dropdown-item" >
+                                            <Link to='/profile'>Account</Link>
                                             </a>
                                         </li>
                                         <li>

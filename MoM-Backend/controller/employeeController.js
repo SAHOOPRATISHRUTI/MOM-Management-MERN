@@ -426,38 +426,24 @@ const deactivateEmployee = async (req, res) => {
     }
 };
 
-const updateEmployeeProfileController = async (req, res) => {
-    const { id } = req.params;  // Extract employeeId (MongoDB ObjectId) from URL parameter
-  
-    // // Validate the ObjectId format
-    // if (!mongoose.Types.ObjectId.isValid(id)) {
-    //   return res.status(400).json({ message: 'Invalid EmployeeId' });
-    // }
-  
-    const updateData = req.body; // Extract the update data from request body
-  
+const editProfile = async (req, res) => {
+    // Destructure the 'id' from req.params
+    const { id } = req.params;
+    const updateData = req.body;  // Get the fields to update from the request body
+    console.log("Updating profile for employee with ID:", id);
+    
     try {
-      // Call service to update profile
+      // Call the service to update the profile
       const updatedEmployee = await authService.updateEmployeeProfile(id, updateData);
   
-      if (!updatedEmployee) {
-        return res.status(404).json({ message: 'Employee not found' });
-      }
-
-      return Responses.successResponse(req, res, updatedEmployee, 'Employee profile updated successfully', 200);
-  
-    //   // Send the response with updated data
-    //   res.status(200).json({
-    //     message: 'Employee profile updated successfully',
-    //     employee: updatedEmployee,
-    //   });
-    } catch (error) {
-        console.error(error)
-        return Responses.errorResponse(req, res, error);
+      // Send the success response
+      return Responses.successResponse(req, res, updatedEmployee, messages.UPDATED_SUCCESS, 200);
+    } catch (err) {
+      // Handle errors and send failure response
+      return Responses.failResponse(req, res, null, messages.updateDatafail, 404);
     }
   };
-
-
+  
 
 module.exports = {
     login,
@@ -472,6 +458,6 @@ module.exports = {
     listEmployee,
     activateEmployee,
     deactivateEmployee,
-    updateEmployeeProfileController
+    editProfile
 
 };

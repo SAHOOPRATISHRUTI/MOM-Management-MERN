@@ -590,35 +590,33 @@ const deactivateEmployee = async (employeeId) => {
     );
     return result;
 };
-
 const updateEmployeeProfile = async (id, updateData) => {
     try {
-   
+      // Validate the ID
       if (!mongoose.Types.ObjectId.isValid(id)) {
         throw new Error('Invalid EmployeeId');
       }
   
-      const objectId = new mongoose.Types.ObjectId(id);
-  
+      // Perform the update operation using the validated ObjectId
       const updatedEmployee = await EmployeeUser.findByIdAndUpdate(
-        objectId, 
-        { $set: updateData },  
-        { new: true, runValidators: true } 
+        { _id:new mongoose.Types.ObjectId(id) },  // Ensure the ID is an ObjectId
+        { $set: updateData },
+        { new: true, runValidators: true }
       );
   
+      // If no employee is found, throw an error
       if (!updatedEmployee) {
         throw new Error('Employee not found');
       }
   
+      // Return the updated employee document
       return updatedEmployee;
     } catch (err) {
-
       console.error('Error updating employee profile:', err.message);
-      throw new Error(err.message);  
+      throw new Error(err.message);
     }
   };
   
-
 
 
 module.exports = {

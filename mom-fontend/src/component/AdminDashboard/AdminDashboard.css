@@ -5,6 +5,10 @@
     padding: 0;
   }
   
+  a{
+    color:white;
+  }
+
   body {
     font-family: 'Roboto', sans-serif;
     background-color: #f4f7fc;

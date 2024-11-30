@@ -30,9 +30,8 @@
   
   /* For the InputAdornment (icons inside TextField) */
   .custom-textfield .MuiInputAdornment-root {
-    color: #007bff;
-  }
-  
+    color: #7254af;
+}
   .custom-dialog {
     width: 80%;
     max-width: 900px;
@@ -41,4 +40,10 @@
   .custom-grid-spacing {
     margin-top: 16px;
   }
-  
+  .profile-picture-section {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .css-1umw9bq-MuiSvgIcon-root{
+    color: #7254af;
+  }
