@@ -1,6 +1,9 @@
 .App {
   text-align: center;
 }
+button.MuiButtonBase-root.MuiButton-root.MuiButton-outlined.MuiButton-outlinedPrimary.MuiButton-sizeMedium.MuiButton-outlinedSizeMedium.MuiButton-colorPrimary.MuiButton-fullWidth.MuiButton-root.MuiButton-outlined.MuiButton-outlinedPrimary.MuiButton-sizeMedium.MuiButton-outlinedSizeMedium.MuiButton-colorPrimary.MuiButton-fullWidth.css-149w3u8-MuiButtonBase-root-MuiButton-root {
+  color: white;
+}
 
 .App-logo {
   height: 40vmin;
@@ -23,6 +26,10 @@
   font-size: calc(10px + 2vmin);
   color: white;
 }
+.css-1o1finp-MuiButtonBase-root-MuiButton-root.Mui-disabled {
+  color: white !important;
+}
+
 
 .App-link {
   color: #61dafb;

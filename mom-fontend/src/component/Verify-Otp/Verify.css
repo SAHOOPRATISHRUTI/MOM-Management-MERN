@@ -143,9 +143,9 @@ form .MuiTextField-root {
 }
 
 button[type="submit"] {
-  background-color: #0056b3;
+  background: linear-gradient(118deg, #6c0b9ead, #274b91);
   color: white;
-  border-radius: 5px;
+  border-radius: 27px;
   padding: 10px;
 }
 

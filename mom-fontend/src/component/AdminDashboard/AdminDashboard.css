@@ -13,7 +13,7 @@
   
   /* Sidebar Styles */
   .sidebar {
-    background: linear-gradient(294deg, #dafaff, #dfdfdf);
+    background: linear-gradient(38deg, #6c0b9ead, #4472ca);
     color: black;
     width: 250px;
     height: 100vh;
@@ -47,24 +47,24 @@
   }
   
   .navbar-nav .nav-link:hover {
-    background-color: #4db2c3d9 !important;
+    background-color: #32118a !important;
     /* color: white; */
 }
   
   .nav-link-label {
     font-size: 0.9rem;
     font-weight: 500;
-    color: #00000080;
+    color: #ffff;
     font-size: 23px;
 }
   
 .nav-link img {
-  width: 36px;
-  height: 35px;
-}
-  
+  width: 37px;
+  height: 36px;
+  border-radius: 11px;
+} 
   .nav-item.active .nav-link :hover {
-    background: linear-gradient(294deg, #dafaff, #dfdfdf);
+    background: #32118a;
   }
   
   .profile-section {
@@ -153,7 +153,7 @@
   }
   
   .table th {
-    background-color:#498a95;
+    background: linear-gradient(118deg, #6c0b9ead, #274b91);
     color: white;
     font-size: 1rem;
     text-align: left;
@@ -168,7 +168,7 @@
   }
   
   .table-row:hover {
-    background-color: #f4f7fc;
+    background-color: #32118a;
   }
   
   .table-row {
@@ -297,7 +297,7 @@
   
   /* Navbar Container */
 .navbar-container {
-    background: linear-gradient(295deg, #38b3c780, #a3b6b9);
+  background: linear-gradient(38deg, #6c0b9ead, #4472ca) !important;
     padding: 10px 0;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
@@ -347,7 +347,7 @@
   }
   
   .dropdown-menu {
-    background-color: #4db2c3d9;
+    background-color: #4f1cafd9;
     border-radius: 5px;
   }
   
@@ -359,7 +359,7 @@
   }
   
   .dropdown-menu .dropdown-item:hover {
-    background-color: #c2e9f0d9;
+    background-color: #22076dd9;
   }
   
   /* Responsive Navbar */
@@ -414,7 +414,7 @@
   }
   
   .navbar-nav .nav-link:hover {
-    color: #ccc;
+    color: white;
   }
   
   .sidebar {
@@ -439,7 +439,7 @@
   }
   
   .sidebar .nav-item .nav-link:hover {
-    background-color: #495057;
+    background-color: #32118a;
     color: white;
   }
   
@@ -493,7 +493,7 @@
   }
   
   .submit-btn:hover {
-    background-color: #218838;
+    background-color: #32118a;
   }
   
   .btn {
@@ -547,13 +547,15 @@ line-height: 1.2;
 button {
   text-transform: none;
   color: white;
-  background-color: #498a95;
+  background: linear-gradient(118deg, #6c0b9ead, #274b91);
   width: 34px;
   /* border: #000000; */
   border: 1px solid white;
   gap: 20px;
 }
-.form-container button{
-  background-color: #498a95 !important;
+
+
+.form-container button {
+  background-color: #56298d !important;
   width: 174px;
 }

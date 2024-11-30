@@ -34,7 +34,8 @@ const login = async (req, res) => {
             mobile: result.mobile,
             address: result.address,
             role:result.role,
-            token: result.token // Include token
+            profilePicture:result.profilePicture,
+            token: result.token 
         }, 'Login successful', 200);
 
     } catch (error) {

@@ -1,6 +1,7 @@
 const { googleAuthService } = require('../service/oauthService');
 const response = require('../helpers/response.js');
-const MESSAGES = require('../constants/constMessage');
+const messages = require('../constants/constMessage');
+
 
 // Google Login Controller
 const googleLogin = async (req, res) => {
@@ -9,7 +10,7 @@ const googleLogin = async (req, res) => {
 
     // Validate that the Google authorization code is provided
     if (!code) {
-      return response.failResponse(req, res, null, MESSAGES.ERROR.BAD_REQUEST, 400);
+      return response.failResponse(req, res, null, messages.BAD_REQUEST, 400);
     }
 
     console.log("Received Google Code:", code);
@@ -35,10 +36,10 @@ const googleLogin = async (req, res) => {
       email: user.email,
       token,
       profilePicture: picture,
-    }, MESSAGES.USER.ACTIVE);
+    }, messages.ACTIVE);
   } catch (err) {
     console.error('Google login error:', err.message);
-    return response.errorResponse(req, res, MESSAGES.ERROR.INTERNAL_SERVER_ERROR, 500);
+    return response.errorResponse(req, res, messages.INTERNAL_SERVER_ERROR, 500);
   }
 };
 
@@ -47,26 +48,26 @@ const googleSignUp = async (req, res) => {
   try {
     const { code } = req.query;
     if (!code) {
-      return response.failResponse(req, res, null, MESSAGES.GOOGLE_MISSING_CODE_MSG, 400);
+      return response.failResponse(req, res, null, messages.GOOGLE_MISSING_CODE_MSG, 400);
     }
 
     console.log("Received Google Code for Signup:", code);
 
     const result = await googleAuthService.googleSignUpService(code);
 
-    return response.successResponse(req, res, result.userData, MESSAGES.GOOGLE_SIGNUP_SUCCESS_MSG, 201);
+    return response.successResponse(req, res, result.userData, messages.GOOGLE_SIGNUP_SUCCESS_MSG, 201);
   } catch (err) {
     console.error('Google signup controller error:', err.message);
 
     if (err.message === 'User already exists. Please log in instead.') {
-      return response.failResponse(req, res, null, MESSAGES.GOOGLE_SIGNUP_FAIL_MSG, 400);
+      return response.failResponse(req, res, null, messages.GOOGLE_SIGNUP_FAIL_MSG, 400);
     }
 
     if (err.message === 'Failed to get valid access token from Google') {
-      return response.failResponse(req, res, null, MESSAGES.GOOGLE_ACCESS_TOKEN_FAIL_MSG, 400);
+      return response.failResponse(req, res, null, messages.GOOGLE_ACCESS_TOKEN_FAIL_MSG, 400);
     }
 
-    return response.errorResponse(res, MESSAGES.GOOGLE_SIGNUP_ERROR_MSG, 500);
+    return response.errorResponse(res, messages.GOOGLE_SIGNUP_ERROR_MSG, 500);
   }
 };
 

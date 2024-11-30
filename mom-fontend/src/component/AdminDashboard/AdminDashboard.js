@@ -9,6 +9,9 @@ import Grid from "@mui/material/Grid";
 import { logoutUser, addEmployee, listEmployee, activateEmployee, deactiveEmployee, } from "../../services/api";
 import AuthService from "../AuthService/Authservice";
 import logo from "../../assets/logo.png";
+import meetingicon from "../../assets/meetingicon.png"
+import action from '../../assets/double-tap.png'
+import manage from "../../assets/management.png"
 
 const MeetingPage = () => {
     const [employeeName, setEmployeeName] = useState('');
@@ -22,6 +25,20 @@ const MeetingPage = () => {
     const location = useLocation();
 
     const { profilePicture } = location.state || {};
+    const baseUrl = 'http://localhost:5000/';
+    let formattedProfilePicture;
+    
+    // Check if `profilePicture` exists and apply the condition
+    if (profilePicture) {
+        if (profilePicture.startsWith('https://lh3.googleusercontent.com/a')) {
+            formattedProfilePicture = profilePicture;
+        } else {
+            formattedProfilePicture = `${baseUrl}${profilePicture}`;
+        }
+    } else {
+        formattedProfilePicture = `${baseUrl}default-profile-picture.png`; // Fallback to a default profile picture if none is provided
+    }
+    
 
     const [addEmployeeForm, setAddEmployeeForm] = useState({
         employeeName: "",
@@ -46,13 +63,13 @@ const MeetingPage = () => {
     const fetchEmployees = async (page, searchKey = "") => {
         try {
             setLoading(true);
-    
+
             const response = await listEmployee(page, 5, '-1', searchKey);
             const baseUrl = 'http://localhost:5000/';
-    
+
             const employeesWithFullImageUrls = response.data.employeeData.map(employee => {
                 let formattedProfilePicture = null;
-    
+
                 if (employee.profilePicture) {
                     if (employee.profilePicture.startsWith('https://lh3.googleusercontent.com/a')) {
                         formattedProfilePicture = employee.profilePicture;
@@ -60,23 +77,23 @@ const MeetingPage = () => {
                         formattedProfilePicture = `${baseUrl}${employee.profilePicture}`;
                     }
                 }
-    
+
                 console.log(`Employee: ${employee.employeeName}, Image URL: ${formattedProfilePicture}`);
-    
+
                 return {
                     ...employee,
                     profilePicture: formattedProfilePicture
                 };
             });
-    
-            
+
+
             console.log(employeesWithFullImageUrls);
-    
-            
+
+
             setEmployees(employeesWithFullImageUrls);
             setTotalEmployees(response.data.totalEmployees || 0);
             setTotalPages(response.data.totalPages || 0);
-    
+
         } catch (error) {
             console.error("Error fetching employees:", error);
             setEmployees([]);
@@ -86,7 +103,7 @@ const MeetingPage = () => {
             setLoading(false);
         }
     };
-    
+
 
 
 
@@ -193,6 +210,8 @@ const MeetingPage = () => {
                 ? await activateEmployee(employeeId)
                 : await deactiveEmployee(employeeId);
             toast.success(response.message);
+            console.log(response);
+
 
             setEmployees((prevEmployees) =>
                 prevEmployees.map((employee) =>
@@ -304,7 +323,7 @@ const MeetingPage = () => {
                                         aria-expanded="false"
                                     >
                                         <img
-                                            src={profilePicture || logo}
+                                            src={formattedProfilePicture || logo}
                                             alt="Profile"
                                             width="50"
                                             height="50"
@@ -345,19 +364,19 @@ const MeetingPage = () => {
                 <ul className="navbar-nav me-auto mt-5">
                     <li className="nav-item">
                         <a className="nav-link text-white d-flex gap-2 align-items-center">
-                            <img src="assets/images/meeting.png" alt="Meetings" />
+                            <img src={meetingicon} alt="Meetings" />
                             <span className="nav-link-label">Meetings</span>
                         </a>
                     </li>
                     <li className="nav-item">
                         <a className="nav-link text-white d-flex gap-2 align-items-center">
-                            <img src="assets/images/clipboard.png" alt="Action" />
+                            <img src={action} alt="Action" />
                             <span className="nav-link-label">Action</span>
                         </a>
                     </li>
                     <li className="nav-item">
                         <a className="nav-link text-white d-flex gap-2 align-items-center">
-                            <img src="assets/images/settings.png" alt="Manage" />
+                            <img src={manage} alt="Manage" />
                             <span className="nav-link-label">Manage</span>
                         </a>
                     </li>
@@ -527,7 +546,7 @@ const MeetingPage = () => {
                                                 <td>
                                                     {employee.profilePicture ? (
                                                         <img
-                                                            src={employee.profilePicture} 
+                                                            src={employee.profilePicture}
                                                             alt="Profile"
                                                             style={{ width: '50px', height: '50px', borderRadius: '50%' }}
                                                         />

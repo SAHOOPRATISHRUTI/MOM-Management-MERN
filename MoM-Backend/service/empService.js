@@ -37,6 +37,7 @@ const login = async (email, password) => {
         mobile: user.mobile,
         address: user.address,
         role:user.role,
+        profilePicture:user.profilePicture,
         token 
     };
 };

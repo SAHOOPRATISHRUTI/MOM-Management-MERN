@@ -93,14 +93,15 @@ function Login() {
 
       const userRole = response.data.role;
       console.log(userRole);
+      const profilePicture= response.data.profilePicture;
 
       toast.success(response.message, { autoClose: 2000 });
 
       setTimeout(() => {
         if (userRole === 'user') {
-          navigate('/user-dashboard');
+          navigate('/user-dashboard', { state: { profilePicture } });
         } else {
-          navigate('/dashboard');
+          navigate('/dashboard',{ state: { profilePicture } });
         }
       }, 0);
       console.log(email);
