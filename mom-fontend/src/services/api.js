@@ -149,26 +149,32 @@ const verifyOtpforSignUp = async (email, otp) => {
   }
 };
 
-// Signup User
-const signupUser = async (employeeName,  email,phone,password, address,role) => {
+
+const signupUser = async (formData) => {
   try {
-    console.log("Sending signup request with:", employeeName,  email,phone,password, address,role); // Log request
-    const response = await axios.post(`${API_URL}/signup`, { employeeName,  email,phone,password, address,role});
-    return response.data;  
+    console.log("Sending signup request with FormData:", formData);
+
+    const response = await axios.post(`${API_URL}/signup`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data;
   } catch (error) {
-    // Log the error message
     if (error.response) {
-      console.error('Server Error:', error.response.data.message);
-      throw new Error(error.response.data.message || 'Signup failed');
+      console.error("Server Error:", error.response.data.message);
+      throw new Error(error.response.data.message || "Signup failed");
     } else if (error.request) {
-      console.error('No response from server:', error.request);
-      throw new Error('No response from server');
+      console.error("No response from server:", error.request);
+      throw new Error("No response from server");
     } else {
-      console.error('Error during request:', error.message);
-      throw new Error('An error occurred during signup request');
+      console.error("Error during request:", error.message);
+      throw new Error("An error occurred during signup request");
     }
   }
 };
+
 
 const logoutUser = async () => {
   try {

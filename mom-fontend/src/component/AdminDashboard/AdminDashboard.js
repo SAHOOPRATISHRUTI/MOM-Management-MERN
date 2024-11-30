@@ -43,14 +43,40 @@ const MeetingPage = () => {
 
     const searchTimeout = useRef(null);
 
-    // Fetch employee data
     const fetchEmployees = async (page, searchKey = "") => {
         try {
             setLoading(true);
+    
             const response = await listEmployee(page, 5, '-1', searchKey);
-            setEmployees(response.data.employeeData || []);
+            const baseUrl = 'http://localhost:5000/';
+    
+            const employeesWithFullImageUrls = response.data.employeeData.map(employee => {
+                let formattedProfilePicture = null;
+    
+                if (employee.profilePicture) {
+                    if (employee.profilePicture.startsWith('https://lh3.googleusercontent.com/a')) {
+                        formattedProfilePicture = employee.profilePicture;
+                    } else {
+                        formattedProfilePicture = `${baseUrl}${employee.profilePicture}`;
+                    }
+                }
+    
+                console.log(`Employee: ${employee.employeeName}, Image URL: ${formattedProfilePicture}`);
+    
+                return {
+                    ...employee,
+                    profilePicture: formattedProfilePicture
+                };
+            });
+    
+            
+            console.log(employeesWithFullImageUrls);
+    
+            
+            setEmployees(employeesWithFullImageUrls);
             setTotalEmployees(response.data.totalEmployees || 0);
             setTotalPages(response.data.totalPages || 0);
+    
         } catch (error) {
             console.error("Error fetching employees:", error);
             setEmployees([]);
@@ -60,8 +86,11 @@ const MeetingPage = () => {
             setLoading(false);
         }
     };
+    
 
-    // Handle search input changes with debounce
+
+
+
     const handleSearchChange = (e) => {
         const searchValue = e.target.value;
         setSearchKey(searchValue);
@@ -79,13 +108,13 @@ const MeetingPage = () => {
         setPage(newPage);
     };
 
-    // Get the employee's name after login and fetch employees
+
     useEffect(() => {
         fetchEmployees(page, searchKey);
-        const name = AuthService.getEmployeeName();  // Make sure this function returns the correct employee name
+        const name = AuthService.getEmployeeName();
         console.log('Fetched Employee Name:', name);
         setEmployeeName(name);
-    }, [page, searchKey]); // Re-run the effect on page or searchKey change
+    }, [page, searchKey]);
 
 
     const handleLogout = async () => {
@@ -480,12 +509,14 @@ const MeetingPage = () => {
                                 <thead>
                                     <tr>
                                         <th>Employee Name</th>
+                                        <th>Profile Picture</th>
                                         <th>Employee ID</th>
                                         <th>Designation</th>
                                         <th>Department</th>
                                         <th>Unit</th>
                                         <th>Updated At</th>
                                         <th>Status</th>
+
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -493,6 +524,19 @@ const MeetingPage = () => {
                                         employees.map((employee) => (
                                             <tr key={employee._id}>
                                                 <td>{employee.employeeName}</td>
+                                                <td>
+                                                    {employee.profilePicture ? (
+                                                        <img
+                                                            src={employee.profilePicture} 
+                                                            alt="Profile"
+                                                            style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+                                                        />
+                                                    ) : (
+                                                        <span>No Image</span>  // Display a fallback text if there's no image
+                                                    )}
+                                                </td>
+
+
                                                 <td>{employee.employeeId}</td>
                                                 <td>{employee.designation}</td>
                                                 <td>{employee.department}</td>

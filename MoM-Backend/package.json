@@ -24,11 +24,13 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.8.2",
+    "multer": "^1.4.5-lts.1",
     "node": "^20.18.1",
     "nodemailer": "^6.9.16",
     "oauth2client": "^1.0.0",
     "passport": "^0.7.0",
     "passport-google-oauth2": "^0.2.0",
+    "path": "^0.12.7",
     "validator": "^13.12.0"
   }
 }

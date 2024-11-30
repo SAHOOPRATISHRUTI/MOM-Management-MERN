@@ -51,12 +51,22 @@ const login = async (req, res) => {
 
 
 const signup = async (req, res) => {
-    const { employeeName, email, phone, password, address, role,updatedAt,profilePicture } = req.body;
+    const { employeeName, email, phone, password, address, role, updatedAt } = req.body;
+    let profilePicture;
 
     try {
+        // Handle file upload: If a file is uploaded, retrieve its filename; otherwise, set to null
+        if (req.file) {
+            profilePicture = req.file.path; // Multer stores file info in `req.file`
+        } else {
+            profilePicture = null; // Default to null if no file is uploaded
+        }
+        console.log(profilePicture);
+        
+
         // Validate input fields
         if (!employeeName) {
-            return Responses.failResponse(req, res, null, messages.nameisrequired, 400);
+            return Responses.failResponse(req, res, null, messages.nameIsRequired, 400);
         }
         if (!email || !validator.isEmail(email)) {
             return Responses.failResponse(req, res, null, messages.emailRequired, 400);
@@ -68,32 +78,43 @@ const signup = async (req, res) => {
             return Responses.failResponse(req, res, null, messages.passwordRequired, 400);
         }
 
+        // Call the signup service and pass the user details
+        const result = await authService.signup(
+            employeeName,
+            email,
+            phone,
+            password,
+            address,
+            role,
+            updatedAt,
+            profilePicture
+        );
 
-        // const mobilePattern = /^[0-9]{10}$/;
-        // if (!mobilePattern.test(phone)) {
-        //     return Responses.failResponse(req, res, null, messages.invalidMobile, 400);
-        // }
-
-
-        const result = await authService.signup(employeeName, email, phone, password, address, role,updatedAt,profilePicture);
-
-
+        // Check if the user already exists (from the service result)
         if (result.existingUser) {
             return Responses.failResponse(req, res, null, messages.userAlreadyExists, 400);
         }
 
-
+        // Successful signup response
         return Responses.successResponse(req, res, {
-            employeeName, email, phone, address, role, updatedAt: result.user.updatedAt,profilePicture:result.user.profilePicture
+            employeeName,
+            email,
+            phone,
+            address,
+            role,
+            updatedAt: result.user.updatedAt,
+            profilePicture: result.user.profilePicture, // Include profile picture in the response
         }, messages.signupSuccess, 200);
-        
+
     } catch (error) {
-        console.error('Error during signup:', error);
+        console.error('Error during signup:', error); // Log the error for debugging
 
-
+        // Handle and return the error response
         return Responses.errorResponse(req, res, error.message || messages.GENERAL_ERROR, 500);
     }
 };
+
+
 
 
 

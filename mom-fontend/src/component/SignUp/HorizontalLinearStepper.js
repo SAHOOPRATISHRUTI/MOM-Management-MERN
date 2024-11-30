@@ -18,9 +18,9 @@ import { toast } from "react-toastify";
 import CircularProgress from "@mui/material/CircularProgress";
 import { sendOtp, verifyOtpforSignUp, signupUser } from "../../services/api";
 import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
-import {  useGoogleLogin } from '@react-oauth/google';
+import { useGoogleLogin } from '@react-oauth/google';
 import { googleSignUp } from '../../services/api';
-
+import { useState } from "react";
 
 const steps = [
   "Personal Information",
@@ -29,22 +29,24 @@ const steps = [
 ];
 
 export default function HorizontalLinearStepper() {
+  const [profilePic, setProfilePic] = useState(null); // For storing the uploaded image
+  const [profilePicError, setProfilePicError] = useState(""); // For storing validation errors
 
   const responseGoogle = async (authResult) => {
     try {
       if (authResult?.code) {
         const result = await googleSignUp(authResult.code);
-        console.log(result); 
-        console.log("fffffffffff",result.data);
+        console.log(result);
+        console.log("fffffffffff", result.data);
 
         const { email, name, authToken, profilePicture } = result.data.data;
         console.log("Profile Image:", profilePicture);
-  
+
         const img = profilePicture;
-  
+
         localStorage.setItem('employeeName', result.data.data.employeeName);
         localStorage.setItem('authToken', result.data.data.token);
-  
+
         toast.success('Successful Login');
         navigate('/dashboard', { state: { profilePicture: img } });
       } else {
@@ -55,13 +57,13 @@ export default function HorizontalLinearStepper() {
       toast.error('Error during Google login');
     }
   };
-  
+
   const googlesignup = useGoogleLogin({
     onSuccess: responseGoogle,
     onError: responseGoogle,
-    flow: "auth-code", 
+    flow: "auth-code",
   });
-  
+
 
   const [activeStep, setActiveStep] = React.useState(0);
   const [skipped, setSkipped] = React.useState(new Set());
@@ -199,29 +201,47 @@ export default function HorizontalLinearStepper() {
       toast.error(error.message);
     }
   };
-
   const handleSubmit = async () => {
     try {
-      const response = await signupUser(
-        employeeName,
-        email,
-        phone,
-        password,
-        address,
-        role
-      );
+      // Create a new FormData object
+      const formData = new FormData();
+      formData.append("employeeName", employeeName);
+      formData.append("email", email);
+      formData.append("phone", phone);
+      formData.append("password", password);
+      formData.append("address", address);
+      formData.append("role", role);
+  
+      // Append the profile picture if selected
+      if (profilePic) {
+        formData.append("profilePicture", profilePic);
+      } else {
+        console.warn("No profile picture selected");
+      }
+  
+      // Log the FormData entries for debugging
+      for (const pair of formData.entries()) {
+        console.log(`${pair[0]}: ${pair[1]}`);
+      }
+  
+      // Call the signup function
+      const response = await signupUser(formData);
+  
       if (response.success) {
-        toast.success(response.message);
+        toast.success(response.message || "Signup successful!");
+        // Navigate to the desired page after a delay
         setTimeout(() => {
           navigate("/");
         }, 3000);
       } else {
-        toast.error(response.message);
+        toast.error(response.message || "Signup failed!");
       }
     } catch (error) {
+      console.error("Error during signup:", error);
       toast.error(error.message || "An unexpected error occurred");
     }
   };
+  
 
   const handleChange = (event, type) => {
     const value = event.target.value;
@@ -303,7 +323,43 @@ export default function HorizontalLinearStepper() {
           <Typography sx={{ mt: 2, mb: 1 }}>{steps[activeStep]}</Typography>
 
           {activeStep === 0 && (
+
             <>
+              <div className="container">
+                <Typography variant="subtitle1">Profile Picture</Typography>
+                <div className="profileBox">
+                  <div className="imagePreview">
+                    {profilePic ? (
+                      <img
+                        src={URL.createObjectURL(profilePic)}
+                        alt="Profile Preview"
+                        className="imageStyle"
+                      />
+                    ) : (
+                      <PersonIcon fontSize="large" color="action" />
+                    )}
+                  </div>
+                  <Button variant="contained" component="label">
+                    Upload Picture
+                    <input
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      name="profilePicture"
+                      onChange={(e) => {
+                        setProfilePic(e.target.files[0]);
+                        setProfilePicError(""); // Clear previous error if any
+                      }}
+                    />
+                  </Button>
+                </div>
+                {profilePicError && (
+                  <Typography color="error" variant="caption">
+                    {profilePicError}
+                  </Typography>
+                )}
+              </div>
+
               <TextField
                 label="Name"
                 fullWidth
@@ -321,6 +377,9 @@ export default function HorizontalLinearStepper() {
                   ),
                 }}
               />
+
+
+
               <TextField
                 label="Phone"
                 fullWidth
@@ -451,7 +510,7 @@ export default function HorizontalLinearStepper() {
             </Button>
           </Box>
 
-          
+
           <div className="login-page">
             <button className="login-with-google-btn" onClick={googlesignup}>
               Sign up with Google

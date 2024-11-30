@@ -13,3 +13,9 @@ input[type="text"] {
 .css-yjs2p9-MuiTypography-root {
     color: #6069da !important;
 }
+
+img.imageStyle {
+  height: 20%;
+  width: 20%;
+  border-radius: 50px;
+}

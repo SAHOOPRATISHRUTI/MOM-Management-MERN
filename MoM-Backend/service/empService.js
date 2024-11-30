@@ -43,17 +43,19 @@ const login = async (email, password) => {
 
 
 
-const signup = async (employeeName, email, phone, password, address, role, otp, updatedAt) => {
-
+const signup = async (employeeName, email, phone, password, address, role, otp, profilePicture) => {
+    // Validate email format
     if (!validator.isEmail(email)) {
         throw new Error('Invalid email format');
     }
 
+    // Validate phone number format (10-digit)
     const mobilePattern = /^[0-9]{10}$/;
     if (!mobilePattern.test(phone)) {
         throw new Error('Invalid mobile number format');
     }
 
+    // Validate password length
     if (typeof password !== 'string') {
         password = String(password);
     }
@@ -61,32 +63,57 @@ const signup = async (employeeName, email, phone, password, address, role, otp, 
         throw new Error('Password should be at least 6 characters long');
     }
 
+    // Check if user already exists with the same email or phone
     const existingUser = await EmployeeUser.findOne({ $or: [{ email }, { phone }] });
     if (existingUser) {
         throw new Error('User already exists with the given email or mobile number');
     }
 
+    // Hash the password before saving to the database
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Check if profilePicture is provided
+    // let profilePicturePath = '';
+    // if (profilePicture && typeof profilePicture === 'string') {
+    //     // Ensure that the profilePicture path is valid and comes from the Multer upload
+    //     profilePicturePath = `uploads/${profilePicture}`;  // The profile picture is stored in the 'uploads' folder
+    // }
+
+    // OTP expiry (valid for 10 minutes)
+    const otpExpiry = Date.now() + 10 * 60 * 1000;
+
+    // Create a new user document
     const newUser = new EmployeeUser({
-        employeeName, email, phone, password: hashedPassword, role, address, otp,
-        otpExpiry: Date.now() + 10 * 60 * 1000
+        employeeName,
+        email,
+        phone,
+        password: hashedPassword,
+        role,
+        address,
+        otp,
+        profilePicture: profilePicture,  // Store the profile picture path
+        otpExpiry,
     });
 
-    await newUser.save();
+    // Save the user to the database
+    try {
+        await newUser.save();
+    } catch (error) {
+        throw new Error('Error saving user to the database: ' + error.message);
+    }
 
-
+    // Return the response object
     return {
         message: 'User registered successfully!',
         user: {
             employeeName: newUser.employeeName,
-            mobile: newUser.phone,
+            phone: newUser.phone,
             email: newUser.email,
             address: newUser.address,
             role: newUser.role,
             updatedAt: newUser.updatedAt,
-            profilePicture:newUser.profilePicture 
-        }
+            profilePicture: newUser.profilePicture,  // Include the profile picture path in the response
+        },
     };
 };
 
