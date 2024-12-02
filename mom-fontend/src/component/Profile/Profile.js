@@ -1,33 +1,60 @@
-import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  Button,
-  Grid,
-  InputAdornment,
-  Avatar,
-  IconButton,
-} from '@mui/material';
-import { AccountCircle, Email, Phone, Home, Work, Business, PhotoCamera } from '@mui/icons-material';
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button, Grid, InputAdornment, Avatar, IconButton, Typography } from '@mui/material';
+import { AccountCircle, Email, Phone, Home, PhotoCamera } from '@mui/icons-material';
+import { jwtDecode } from 'jwt-decode';
+
+import { updateEmployeeProfile } from '../../services/api';
 import './Profile.css';
 
 function Profile({ open, handleClose }) {
   const [formData, setFormData] = useState({
     employeeName: '',
-    employeeId: '',
     email: '',
     phone: '',
     address: '',
-    designation: '',
-    department: '',
-    unit: '',
   });
 
   const [profilePicture, setProfilePicture] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [employeeId, setEmployeeId] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      console.log('Decoded token:', decodedToken);
+      setEmployeeId(decodedToken.id);  // Assuming 'id' is in the JWT payload
+      fetchUserDetails(decodedToken.id);
+    } else {
+      console.log('No token found');
+    }
+  }, []);
+  
+  const fetchUserDetails = async (id) => {
+    try {
+      const response = await fetch(`/employees/${id}`);
+      console.log(response);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch user details');
+      }
+      const data = await response.json();
+      console.log('Fetched data:', data);
+  
+      setFormData({
+        employeeName: data.employeeName,  
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
+      });
+      
+      setPreview(data.profilePicture); // Assuming the response includes a profile picture URL
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+    }
+  };
+  
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -45,23 +72,65 @@ function Profile({ open, handleClose }) {
     }
   };
 
+  const handleUpdateProfile = async () => {
+    if (!employeeId) {
+      alert('User ID is not available');
+      return;
+    }
+  
+    try {
+      const updatedData = {
+        employeeName: formData.employeeName,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+      };
+  
+      console.log("Data being sent:", updatedData);
+  
+      // Call the API to update the profile
+      const response = await updateEmployeeProfile(employeeId, updatedData, profilePicture);
+      alert('Profile updated successfully!');
+      console.log(response);
+      handleClose();  // Close the dialog on success
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Failed to update profile');
+    }
+  };
+  
+
   return (
     <Dialog
       open={open}
       onClose={handleClose}
       fullWidth
-      maxWidth="lg"
-      sx={{ '& .MuiDialog-paper': { width: '80%', maxWidth: '900px' } }}
+      maxWidth="md"
+      sx={{
+        '& .MuiDialog-paper': {
+          borderRadius: '16px',
+          padding: '16px',
+        },
+      }}
     >
-      <DialogTitle>Update Profile</DialogTitle>
+      <DialogTitle>
+        <Typography variant="h5" fontWeight="bold" align="center">
+          Update Profile
+        </Typography>
+      </DialogTitle>
       <DialogContent>
-        <Grid container spacing={3} className="custom-grid-spacing">
+        <Grid container spacing={3}>
           {/* Profile Picture Section */}
-          <Grid item xs={12} className="profile-picture-section">
+          <Grid item xs={12} align="center">
             <Avatar
               src={preview || 'https://via.placeholder.com/150'}
               alt="Profile Picture"
-              sx={{ width: 100, height: 100, margin: 'auto' }}
+              sx={{
+                width: 120,
+                height: 120,
+                margin: 'auto',
+                border: '2px solid #1976d2',
+              }}
             />
             <input
               accept="image/*"
@@ -75,14 +144,14 @@ function Profile({ open, handleClose }) {
                 color="primary"
                 aria-label="upload picture"
                 component="span"
-                sx={{ display: 'block', margin: 'auto', marginTop: 1 }}
+                sx={{ marginTop: 1 }}
               >
                 <PhotoCamera />
               </IconButton>
             </label>
           </Grid>
 
-          {/* First Row (Two Columns) */}
+          {/* Form Fields */}
           <Grid item xs={12} sm={6}>
             <TextField
               label="Employee Name"
@@ -91,7 +160,7 @@ function Profile({ open, handleClose }) {
               value={formData.employeeName}
               onChange={handleInputChange}
               size="small"
-              className="custom-textfield"
+              fullWidth
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -103,34 +172,13 @@ function Profile({ open, handleClose }) {
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Employee ID"
-              variant="outlined"
-              name="employeeId"
-              value={formData.employeeId}
-              onChange={handleInputChange}
-              size="small"
-              className="custom-textfield"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Work />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-
-          {/* Second Row (Two Columns) */}
-          <Grid item xs={12} sm={6}>
-            <TextField
               label="Email"
               variant="outlined"
               name="email"
               value={formData.email}
-              onChange={handleInputChange}
-              type="email"
+              disabled // Disable the email field to prevent updates
               size="small"
-              className="custom-textfield"
+              fullWidth
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -149,7 +197,7 @@ function Profile({ open, handleClose }) {
               onChange={handleInputChange}
               type="tel"
               size="small"
-              className="custom-textfield"
+              fullWidth
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -159,8 +207,6 @@ function Profile({ open, handleClose }) {
               }}
             />
           </Grid>
-
-          {/* Third Row (Single Column for Address) */}
           <Grid item xs={12}>
             <TextField
               label="Address"
@@ -169,7 +215,7 @@ function Profile({ open, handleClose }) {
               value={formData.address}
               onChange={handleInputChange}
               size="small"
-              className="custom-textfield"
+              fullWidth
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -179,71 +225,23 @@ function Profile({ open, handleClose }) {
               }}
             />
           </Grid>
-
-          {/* Fourth Row (Two Columns) */}
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Designation"
-              variant="outlined"
-              name="designation"
-              value={formData.designation}
-              onChange={handleInputChange}
-              size="small"
-              className="custom-textfield"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Work />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Department"
-              variant="outlined"
-              name="department"
-              value={formData.department}
-              onChange={handleInputChange}
-              size="small"
-              className="custom-textfield"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Business />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-
-          {/* Fifth Row (Single Column for Unit) */}
-          <Grid item xs={12}>
-            <TextField
-              label="Unit"
-              variant="outlined"
-              name="unit"
-              value={formData.unit}
-              onChange={handleInputChange}
-              size="small"
-              className="custom-textfield"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Business />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
         </Grid>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="primary">
+        <Button
+          onClick={handleClose}
+          variant="outlined"
+          color="error"
+          sx={{ borderRadius: 2 }}
+        >
           Cancel
         </Button>
-        <Button onClick={() => alert('Profile Updated')} color="primary">
+        <Button
+          onClick={handleUpdateProfile}
+          variant="contained"
+          color="primary"
+          sx={{ borderRadius: 2 }}
+        >
           Update
         </Button>
       </DialogActions>

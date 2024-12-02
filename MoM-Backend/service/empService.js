@@ -25,7 +25,12 @@ const login = async (email, password) => {
     }
 
     const token = jwt.sign(
-        { id: user._id, email: user.email }, 
+        { id: user._id, email: user.email ,
+            employeeName: user.employeeName,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        }, 
         process.env.JWT_USER_SECRET, 
         { expiresIn: '1h' } 
     );
@@ -34,7 +39,7 @@ const login = async (email, password) => {
         id: user._id,
         employeeName: user.employeeName,
         email: user.email,
-        mobile: user.mobile,
+        phone: user.phone,
         address: user.address,
         role:user.role,
         profilePicture:user.profilePicture,
@@ -590,6 +595,7 @@ const deactivateEmployee = async (employeeId) => {
     );
     return result;
 };
+
 const updateEmployeeProfile = async (id, updateData) => {
     try {
       // Validate the ID
@@ -597,9 +603,9 @@ const updateEmployeeProfile = async (id, updateData) => {
         throw new Error('Invalid EmployeeId');
       }
   
-      // Perform the update operation using the validated ObjectId
+    
       const updatedEmployee = await EmployeeUser.findByIdAndUpdate(
-        { _id:new mongoose.Types.ObjectId(id) },  // Ensure the ID is an ObjectId
+        { _id:new mongoose.Types.ObjectId(id) }, 
         { $set: updateData },
         { new: true, runValidators: true }
       );
@@ -617,6 +623,18 @@ const updateEmployeeProfile = async (id, updateData) => {
     }
   };
   
+  
+  const getEmployeeById = async (id) => {
+    try {
+      const employee = await EmployeeUser.findById(id);
+      if (!employee) {
+        throw new Error('Employee not found');
+      }
+      return employee;
+    } catch (error) {
+      throw new Error(error.message || 'Error fetching employee');
+    }
+  };
 
 
 module.exports = {
@@ -633,4 +651,5 @@ module.exports = {
     activateEmployee,
     deactivateEmployee,
     updateEmployeeProfile,
+    getEmployeeById
 }

@@ -37,11 +37,10 @@ router.get('/employees', employeeController.listEmployee);
 router.post('/activate/:employeeId', Middleware.authenticateToken, employeeController.activateEmployee);
 router.post('/deactivate/:employeeId', Middleware.authenticateToken, employeeController.deactivateEmployee);
 
-//router.put('/update-profile/:id', upload.single('profilePicture'), employeeController.editProfile); // Handles profile image upload for update
 
 router.put('/profile/:id', upload.single('profilePicture'), async (req, res) => {
-  // Now, when the request is made to /profile/:id, the id will be accessible in req.params
   const { id } = req.params;
+  console.log('Backend received ID:', id); // Add this to check if the ID is valid
   const updateData = req.body;
 
   if (req.file) {
@@ -58,6 +57,7 @@ router.put('/profile/:id', upload.single('profilePicture'), async (req, res) => 
   }
 });
 
+router.get('/employees/:id', employeeController.getEmployeeDetails);
 
 
 module.exports = router;

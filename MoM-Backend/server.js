@@ -19,7 +19,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Dynamic CORS options
 const corsOptions = {
     origin: process.env.NODE_ENV === 'production' ? process.env.CLIENT_URL : 'http://localhost:3001',
-    methods: 'GET,POST',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
 };
 app.use(cors(corsOptions));

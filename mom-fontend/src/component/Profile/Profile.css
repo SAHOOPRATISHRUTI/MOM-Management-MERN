@@ -47,3 +47,24 @@
   .css-1umw9bq-MuiSvgIcon-root{
     color: #7254af;
   }
+  .custom-grid-spacing {
+    margin-top: 8px;
+  }
+  
+  .custom-textfield {
+    margin-bottom: 16px;
+  }
+  
+  .profile-picture-section {
+    text-align: center;
+  }
+  
+  .MuiAvatar-root {
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .MuiButton-root {
+    text-transform: capitalize;
+    padding: 8px 16px;
+  }
+  

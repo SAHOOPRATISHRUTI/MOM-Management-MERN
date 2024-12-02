@@ -443,6 +443,24 @@ const editProfile = async (req, res) => {
       return Responses.failResponse(req, res, null, messages.updateDatafail, 404);
     }
   };
+
+  const getEmployeeDetails = async (req, res) => {
+    const id = req.params.id; 
+  
+    try{
+      const employee = await authService.getEmployeeById(id);
+  
+      res.json({
+        employeeName: employee.employeeName,
+        email: employee.email,
+        phone: employee.phone,
+        address: employee.address,
+        profilePicture: employee.profilePicture,
+      });
+    } catch (error) {
+      res.status(404).json({ message: error.message });
+    }
+  }
   
 
 module.exports = {
@@ -458,6 +476,7 @@ module.exports = {
     listEmployee,
     activateEmployee,
     deactivateEmployee,
-    editProfile
+    editProfile,
+    getEmployeeDetails
 
 };

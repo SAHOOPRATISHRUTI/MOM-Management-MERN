@@ -249,11 +249,9 @@ const addEmployee = async (employeeName, employeeId, email, designation, departm
 
 const listEmployee = async (page = 1, limit = 5, order = '-1', searchKey = '') => {
   try {
-    console.log("Sending request to list employees with filters:", "page:", page, "limit:", limit, "order:", order, "searchKey:", searchKey);
-
+    //console.log("Sending request to list employees with filters:", "page:", page, "limit:", limit, "order:", order, "searchKey:", searchKey);
 
     const includeDeactivated = 'true'; 
-
 
     const params = {
       page,
@@ -262,7 +260,7 @@ const listEmployee = async (page = 1, limit = 5, order = '-1', searchKey = '') =
       searchKey,
     };
 
-    console.log('Requesting employees with params:', params);
+    //console.log('Requesting employees with params:', params);
 
     const response = await axios.get(`${API_URL}/employees`, {
       params,
@@ -271,7 +269,7 @@ const listEmployee = async (page = 1, limit = 5, order = '-1', searchKey = '') =
       }
     });
 
-    console.log('Employees fetched successfully:', response.data);
+    //console.log('Employees fetched successfully:', response.data);
     return response.data;
     
   } catch (error) {
@@ -323,7 +321,6 @@ const deactiveEmployee = async(employeeId)=>{
 
 
 
-
 const api = axios.create({
     baseURL: "http://localhost:5000/api/user",
     // withCredentials: true,
@@ -332,6 +329,80 @@ const api = axios.create({
 const googleAuth = (code) => api.get(`/google?code=${code}`);
 
 export const googleSignUp = (code) => api.post(`/google-signup?code=${code}`);
+
+
+
+
+const updateEmployeeProfile = async (id, updatedData, profilePicture) => {
+  try {
+    console.log("Sending request to update profile for user:", id);
+    const formData = new FormData();
+
+    for (const key in updatedData) {
+      if (updatedData[key]) {
+        formData.append(key, updatedData[key]);
+      }
+    }
+
+    if (profilePicture) {
+      formData.append('profilePicture', profilePicture);
+    }
+
+    const response = await axios.put(`${API_URL}/profile/${id}`, formData, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    console.log("Profile updated successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      console.error('Server Error:', error.response.data.message);
+      throw new Error(error.response.data.message || 'Failed to update profile');
+    } else if (error.request) {
+      console.error('No response from server:', error.request);
+      throw new Error('No response from server');
+    } else {
+      console.error('Error during request:', error.message);
+      throw new Error('An error occurred while updating the profile');
+    }
+  }
+};
+
+
+    
+const getEmployeeById = async (id) => {
+  try {
+      console.log("Fetching employee with ID:", id); // Log to check if ID is passed correctly
+      
+      if (!id) {
+          throw new Error("Employee ID is required");
+      }
+
+      const response = await axios.get(`${API_URL}/employees/${id}`);
+      
+      // Log the successful response to check if the API returns the expected data
+      console.log("Employee details fetched successfully:", response.data);
+      
+      return response.data;
+  } catch (error) {
+      // Handle different types of errors based on the error structure
+      if (error.response) {
+          console.error("Server Error:", error.response.data.message);
+          throw new Error(error.response.data.message || 'Failed to fetch employee details');
+      } else if (error.request) {
+          console.error("No response from server:", error.request);
+          throw new Error('No response from server');
+      } else {
+          console.error("Request Error:", error.message);
+          throw new Error('An error occurred during the request');
+      }
+  }
+};
+
+
 export { 
          loginUser,
          generateOTP,
@@ -345,5 +416,7 @@ export {
          listEmployee,
         activateEmployee,
         deactiveEmployee,
-        googleAuth
+        googleAuth,
+        updateEmployeeProfile,
+        getEmployeeById
       };
