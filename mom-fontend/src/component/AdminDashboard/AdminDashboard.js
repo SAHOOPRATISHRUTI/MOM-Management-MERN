@@ -15,13 +15,12 @@ import action from '../../assets/double-tap.png'
 import manage from "../../assets/management.png"
 import { getEmployeeById } from "../../services/api";
 import Profile from "../Profile/Profile";
-import { jwtDecode } from 'jwt-decode';  
+import { jwtDecode } from 'jwt-decode';
 
 
-const MeetingPage = () => {
- 
+const MeetingPage = ({ showModal }) => {
 
-    const { id } = useParams();
+
     const [employeeName, setEmployeeName] = useState('');
     const [employees, setEmployees] = useState([]);
     const [totalEmployees, setTotalEmployees] = useState(0);
@@ -29,34 +28,39 @@ const MeetingPage = () => {
     const [page, setPage] = useState(1);
     const [searchKey, setSearchKey] = useState('');
     const [loading, setLoading] = useState(false);
-    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-    
+    const [employeeData, setEmployeeData] = useState(null);
+    const [openProfileModal, setOpenProfileModal] = useState(false);
+    const [employeeId, setEmployeeId] = useState(null);
+    const [employeeProfilePicture, setemployeeProfilePicture] = useState('');
+    const [employeeEmail, setEmployeeEmail] = useState('');
+    const [employeeRole, setEmployeeRole] = useState('');
+
     const handleOpenProfileModal = () => {
-        setIsProfileModalOpen(true);
+        setOpenProfileModal(true);
     };
-    
+
     const handleCloseProfileModal = () => {
-        setIsProfileModalOpen(false);
+        setOpenProfileModal(false);
     };
-    
+
     const navigate = useNavigate();
     const location = useLocation();
-    
+
     const { profilePicture } = location.state || {};
     const baseUrl = 'http://localhost:5000/';
     let formattedProfilePicture;
-    
-    // Check if `profilePicture` exists and apply the condition
-    if (profilePicture) {
-        if (profilePicture.startsWith('https://lh3.googleusercontent.com/a')) {
-            formattedProfilePicture = profilePicture;
-        } else {
-            formattedProfilePicture = `${baseUrl}${profilePicture}`;
-        }
-    } else {
-        formattedProfilePicture = `${baseUrl}${profilePicture}`;
-    }
-    
+
+    // // Check if `profilePicture` exists and apply the condition
+    // if (profilePicture) {
+    //     if (profilePicture.startsWith('https://lh3.googleusercontent.com/a')) {
+    //         formattedProfilePicture = profilePicture;
+    //     } else {
+    //         formattedProfilePicture = `${baseUrl}${profilePicture}`;
+    //     }
+    // } else {
+    //     formattedProfilePicture = `${baseUrl}${profilePicture}`;
+    // }
+
     const [addEmployeeForm, setAddEmployeeForm] = useState({
         employeeName: "",
         employeeId: "",
@@ -65,7 +69,7 @@ const MeetingPage = () => {
         department: "",
         unit: "",
     });
-    
+
     const [errors, setErrors] = useState({
         employeeName: "",
         employeeId: "",
@@ -74,44 +78,56 @@ const MeetingPage = () => {
         department: "",
         unit: "",
     });
-    
+
     const searchTimeout = useRef(null);
-    
-    // Function to decode JWT and fetch employee details by ID
+
+
     const fetchEmployeeById = async () => {
         try {
-            // Get JWT token from localStorage or wherever it's stored
-            const token = localStorage.getItem('authToken'); // Adjust if needed
+            const token = localStorage.getItem('authToken');
             if (token) {
                 const decodedToken = jwtDecode(token);
-                //console.log(decodedToken);
-                
-                const employeeId = decodedToken.id; // Assuming 'id' is the field in the decoded token
-                console.log("employeeId",employeeId);
-                
-              
+                const employeeId = decodedToken.id;
+
                 const response = await getEmployeeById(employeeId);
-    
-                console.log('Employee Details:', response);
+
+                setEmployeeData(response);
+
+                // Assuming response has profilePicture
+                const baseUrl = 'http://localhost:5000/';
+                let formattedProfilePicture = null;
+                if (response.profilePicture) {
+                    if (response.profilePicture.startsWith('https://lh3.googleusercontent.com/a')) {
+                        formattedProfilePicture = response.profilePicture;
+                    } else {
+                        formattedProfilePicture = `${baseUrl}${response.profilePicture}`;
+                    }
+                }
+
                 setEmployeeName(response.employeeName);
-                console.log(response.employeeName);
+                setEmployeeEmail(response.employeeEmail); // Assuming these exist in the response
+                setEmployeeRole(response.employeeRole);   // Assuming these exist in the response
+                setEmployeeId(employeeId); // Setting Employee ID for reference
+                setEmployeeData({ ...response, profilePicture: formattedProfilePicture });
+                setemployeeProfilePicture(formattedProfilePicture);
                 
             }
         } catch (error) {
             console.error("Error fetching employee by ID:", error);
         }
     };
-    
+
+
     const fetchEmployees = async (page, searchKey = "") => {
         try {
             setLoading(true);
-    
+
             const response = await listEmployee(page, 5, '-1', searchKey);
             const baseUrl = 'http://localhost:5000/';
-    
+
             const employeesWithFullImageUrls = response.data.employeeData.map(employee => {
                 let formattedProfilePicture = null;
-    
+
                 if (employee.profilePicture) {
                     if (employee.profilePicture.startsWith('https://lh3.googleusercontent.com/a')) {
                         formattedProfilePicture = employee.profilePicture;
@@ -119,17 +135,17 @@ const MeetingPage = () => {
                         formattedProfilePicture = `${baseUrl}${employee.profilePicture}`;
                     }
                 }
-    
+
                 return {
                     ...employee,
                     profilePicture: formattedProfilePicture
                 };
             });
-    
+
             setEmployees(employeesWithFullImageUrls);
             setTotalEmployees(response.data.totalEmployees || 0);
             setTotalPages(response.data.totalPages || 0);
-    
+
         } catch (error) {
             console.error("Error fetching employees:", error);
             setEmployees([]);
@@ -139,18 +155,30 @@ const MeetingPage = () => {
             setLoading(false);
         }
     };
-    
+
+    useEffect(() => {
+        if (employeeId) {
+            fetchEmployeeById(employeeId);
+        }
+    }, [employeeId]);
+
+    useEffect(() => {
+        if (showModal) {
+            fetchEmployeeById();
+        }
+    }, [showModal]);
+
     useEffect(() => {
         fetchEmployees(page, searchKey);
-    
+
         fetchEmployeeById();
-    
+
         const name = AuthService.getEmployeeName();
         console.log('Fetched Employee Name:', name);
         setEmployeeName(name);
     }, [page, searchKey]);
-    
-    
+
+
 
 
     const handleSearchChange = (e) => {
@@ -165,13 +193,11 @@ const MeetingPage = () => {
         }, 500);
     };
 
-    // Handle page change
+
     const handlePageChange = (newPage) => {
         setPage(newPage);
     };
 
-
-   
 
     const handleLogout = async () => {
         try {
@@ -343,10 +369,9 @@ const MeetingPage = () => {
                                     </a>
                                 </li>
                                 <li className="nav-item">
-                                    <a className="nav-link" href="#">
-                                        <i className="bi bi-person-circle"></i>
-                                        <Link to="/profile">Profile</Link>
-                                    </a>
+                                    <Link className="nav-link" to="/profile">
+                                        <i className="bi bi-person-circle"></i> Profile
+                                    </Link>
                                 </li>
                                 <li className="nav-item">
                                     <a className="nav-link" href="#">
@@ -363,22 +388,19 @@ const MeetingPage = () => {
                                         aria-expanded="false"
                                     >
                                         <img
-                                            src={formattedProfilePicture || 'default-profile-picture.png'}
+                                            src={employeeProfilePicture || 'default-profile-picture.png'}
                                             alt="Profile"
                                             width="50"
                                             height="50"
                                         />
+
                                         {employeeName}
                                     </a>
-                                    <ul
-                                        className="dropdown-menu"
-                                        aria-labelledby="navbarDropdown"
-                                    >
+                                    <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
                                         <li>
                                             <a
                                                 className="dropdown-item"
                                                 onClick={handleOpenProfileModal}
-                                                // href="#"
                                             >
                                                 Account
                                             </a>
@@ -386,7 +408,6 @@ const MeetingPage = () => {
                                         <li>
                                             <a
                                                 className="dropdown-item"
-                                                // href="#"
                                                 onClick={handleLogout}
                                             >
                                                 Logout
@@ -399,14 +420,15 @@ const MeetingPage = () => {
                     </div>
                 </nav>
 
-                {/* Profile Modal */}
-                {isProfileModalOpen && (
+                {openProfileModal && (
                     <Profile
-                        open={isProfileModalOpen}
+                        open={openProfileModal}
                         handleClose={handleCloseProfileModal}
+                        employeeData={employeeData}
                     />
                 )}
             </header>
+
 
             <div className="sidebar">
                 <div className="logo">

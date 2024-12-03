@@ -1,60 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button, Grid, InputAdornment, Avatar, IconButton, Typography } from '@mui/material';
 import { AccountCircle, Email, Phone, Home, PhotoCamera } from '@mui/icons-material';
-import { jwtDecode } from 'jwt-decode';
-
-import { updateEmployeeProfile } from '../../services/api';
+import { jwtDecode } from 'jwt-decode'; 
+import { updateEmployeeProfile } from '../../services/api'; 
 import './Profile.css';
 
-function Profile({ open, handleClose }) {
+function Profile({ open, handleClose, employeeData }) {
   const [formData, setFormData] = useState({
     employeeName: '',
     email: '',
     phone: '',
     address: '',
   });
-
   const [profilePicture, setProfilePicture] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [employeeId, setEmployeeId] = useState(null);
+  const [employeeId, setEmployeeId] = useState('');
+  const [errors, setErrors] = useState({
+    employeeName: '',
+    phone: ''
+  });
+
+  useEffect(() => {
+    console.log('Employee Data from Props:', employeeData);
+  }, [employeeData]);
+
+  useEffect(() => {
+    if (employeeData) {
+      setFormData({
+        employeeName: employeeData.employeeName || '',
+        email: employeeData.email || '',
+        phone: employeeData.phone || '',
+        address: employeeData.address || '',
+      });
+      setPreview(employeeData.profilePicture || null);
+      if (!employeeId) {
+        setEmployeeId(employeeData.id || employeeData._id || null);
+      }
+    }
+  }, [employeeData, employeeId]);
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (token) {
-      const decodedToken = jwtDecode(token);
-      console.log('Decoded token:', decodedToken);
-      setEmployeeId(decodedToken.id);  // Assuming 'id' is in the JWT payload
-      fetchUserDetails(decodedToken.id);
+      try {
+        const decoded = jwtDecode(token);
+        console.log('Decoded Token:', decoded);
+        if (decoded.id) {
+          setEmployeeId(decoded.id);
+          console.log('Employee ID from Token:', decoded.id);
+        } else {
+          console.warn('ID not found in token payload');
+        }
+      } catch (error) {
+        console.error('Failed to decode token:', error);
+      }
     } else {
-      console.log('No token found');
+      console.warn('No auth token found in local storage');
     }
   }, []);
-  
-  const fetchUserDetails = async (id) => {
-    try {
-      const response = await fetch(`/employees/${id}`);
-      console.log(response);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch user details');
-      }
-      const data = await response.json();
-      console.log('Fetched data:', data);
-  
-      setFormData({
-        employeeName: data.employeeName,  
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-      });
-      
-      setPreview(data.profilePicture); // Assuming the response includes a profile picture URL
-    } catch (error) {
-      console.error('Error fetching user details:', error);
-    }
-  };
-  
-  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -72,33 +75,55 @@ function Profile({ open, handleClose }) {
     }
   };
 
+  const validateInputs = () => {
+    let isValid = true;
+    const newErrors = {};
+
+    // Name validation: should be at least 3 characters long
+    if (formData.employeeName.length < 3) {
+      newErrors.employeeName = 'Name must be at least 3 characters long';
+      isValid = false;
+    }
+
+    // Phone validation: should be exactly 10 digits
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      newErrors.phone = 'Phone number must be exactly 10 digits';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleUpdateProfile = async () => {
     if (!employeeId) {
-      alert('User ID is not available');
+      console.error('Employee ID is null or undefined. Unable to update profile.');
+      alert('Employee ID is missing. Please try again.');
       return;
     }
-  
+
+    // Validate inputs before updating
+    if (!validateInputs()) {
+      return;
+    }
+
     try {
       const updatedData = {
         employeeName: formData.employeeName,
-        email: formData.email,
         phone: formData.phone,
         address: formData.address,
       };
-  
-      console.log("Data being sent:", updatedData);
-  
-      // Call the API to update the profile
+
       const response = await updateEmployeeProfile(employeeId, updatedData, profilePicture);
+      console.log('Profile updated successfully:', response);
       alert('Profile updated successfully!');
-      console.log(response);
-      handleClose();  // Close the dialog on success
+      handleClose();
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile');
+      alert('Failed to update profile. Please try again.');
     }
   };
-  
 
   return (
     <Dialog
@@ -161,6 +186,8 @@ function Profile({ open, handleClose }) {
               onChange={handleInputChange}
               size="small"
               fullWidth
+              error={Boolean(errors.employeeName)}
+              helperText={errors.employeeName}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -176,7 +203,7 @@ function Profile({ open, handleClose }) {
               variant="outlined"
               name="email"
               value={formData.email}
-              disabled // Disable the email field to prevent updates
+              disabled // Disable email to prevent editing
               size="small"
               fullWidth
               InputProps={{
@@ -198,6 +225,8 @@ function Profile({ open, handleClose }) {
               type="tel"
               size="small"
               fullWidth
+              error={Boolean(errors.phone)}
+              helperText={errors.phone}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">

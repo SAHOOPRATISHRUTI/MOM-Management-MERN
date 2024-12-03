@@ -598,7 +598,6 @@ const deactivateEmployee = async (employeeId) => {
 
 const updateEmployeeProfile = async (id, updateData) => {
     try {
-      // Validate the ID
       if (!mongoose.Types.ObjectId.isValid(id)) {
         throw new Error('Invalid EmployeeId');
       }
@@ -610,12 +609,11 @@ const updateEmployeeProfile = async (id, updateData) => {
         { new: true, runValidators: true }
       );
   
-      // If no employee is found, throw an error
+
       if (!updatedEmployee) {
         throw new Error('Employee not found');
       }
   
-      // Return the updated employee document
       return updatedEmployee;
     } catch (err) {
       console.error('Error updating employee profile:', err.message);
