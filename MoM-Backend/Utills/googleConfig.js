@@ -7,7 +7,7 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const oauth2client = new google.auth.OAuth2(
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
-  'postmessage' // This is the redirect URL for OAuth
+  'postmessage' 
 );
 
 module.exports = { oauth2client };

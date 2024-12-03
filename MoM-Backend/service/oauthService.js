@@ -36,7 +36,7 @@ const googleAuthService = {
   // Generate authentication token
   async generateAuthToken(user, name) {
     return await authMiddleware.generateToken({
-      userId: user._id,
+      id: user._id,
       employeeName: name,
       email: user.email,
     });

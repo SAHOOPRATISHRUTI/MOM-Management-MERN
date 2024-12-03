@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button, Grid, InputAdornment, Avatar, IconButton, Typography } from '@mui/material';
 import { AccountCircle, Email, Phone, Home, PhotoCamera } from '@mui/icons-material';
-import { jwtDecode } from 'jwt-decode'; 
-import { updateEmployeeProfile } from '../../services/api'; 
+import { jwtDecode } from 'jwt-decode';
+import { updateEmployeeProfile } from '../../services/api';
 import './Profile.css';
 
 function Profile({ open, handleClose, employeeData }) {
@@ -17,12 +17,8 @@ function Profile({ open, handleClose, employeeData }) {
   const [employeeId, setEmployeeId] = useState('');
   const [errors, setErrors] = useState({
     employeeName: '',
-    phone: ''
+    phone: '',
   });
-
-  useEffect(() => {
-    console.log('Employee Data from Props:', employeeData);
-  }, [employeeData]);
 
   useEffect(() => {
     if (employeeData) {
@@ -44,10 +40,8 @@ function Profile({ open, handleClose, employeeData }) {
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        console.log('Decoded Token:', decoded);
         if (decoded.id) {
           setEmployeeId(decoded.id);
-          console.log('Employee ID from Token:', decoded.id);
         } else {
           console.warn('ID not found in token payload');
         }
@@ -75,36 +69,10 @@ function Profile({ open, handleClose, employeeData }) {
     }
   };
 
-  const validateInputs = () => {
-    let isValid = true;
-    const newErrors = {};
-
-    // Name validation: should be at least 3 characters long
-    if (formData.employeeName.length < 3) {
-      newErrors.employeeName = 'Name must be at least 3 characters long';
-      isValid = false;
-    }
-
-    // Phone validation: should be exactly 10 digits
-    const phoneRegex = /^[0-9]{10}$/;
-    if (!phoneRegex.test(formData.phone)) {
-      newErrors.phone = 'Phone number must be exactly 10 digits';
-      isValid = false;
-    }
-
-    setErrors(newErrors);
-    return isValid;
-  };
-
   const handleUpdateProfile = async () => {
     if (!employeeId) {
       console.error('Employee ID is null or undefined. Unable to update profile.');
       alert('Employee ID is missing. Please try again.');
-      return;
-    }
-
-    // Validate inputs before updating
-    if (!validateInputs()) {
       return;
     }
 
@@ -122,6 +90,23 @@ function Profile({ open, handleClose, employeeData }) {
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('Failed to update profile. Please try again.');
+    }
+  };
+
+  const validateEmployeeName = (value) => {
+    if (value.length <= 3) {
+      setErrors((prev) => ({ ...prev, employeeName: 'Employee name must be greater than 3 characters.' }));
+    } else {
+      setErrors((prev) => ({ ...prev, employeeName: '' }));
+    }
+  };
+
+  const validatePhone = (value) => {
+    const regex = /^[0-9]{10}$/;
+    if (!regex.test(value)) {
+      setErrors((prev) => ({ ...prev, phone: 'Phone number must be 10 digits.' }));
+    } else {
+      setErrors((prev) => ({ ...prev, phone: '' }));
     }
   };
 
@@ -183,10 +168,13 @@ function Profile({ open, handleClose, employeeData }) {
               variant="outlined"
               name="employeeName"
               value={formData.employeeName}
-              onChange={handleInputChange}
+              onChange={(e) => {
+                handleInputChange(e);
+                validateEmployeeName(e.target.value);
+              }}
               size="small"
               fullWidth
-              error={Boolean(errors.employeeName)}
+              error={!!errors.employeeName}
               helperText={errors.employeeName}
               InputProps={{
                 startAdornment: (
@@ -221,11 +209,14 @@ function Profile({ open, handleClose, employeeData }) {
               variant="outlined"
               name="phone"
               value={formData.phone}
-              onChange={handleInputChange}
+              onChange={(e) => {
+                handleInputChange(e);
+                validatePhone(e.target.value);
+              }}
               type="tel"
               size="small"
               fullWidth
-              error={Boolean(errors.phone)}
+              error={!!errors.phone}
               helperText={errors.phone}
               InputProps={{
                 startAdornment: (
@@ -270,6 +261,7 @@ function Profile({ open, handleClose, employeeData }) {
           variant="contained"
           color="primary"
           sx={{ borderRadius: 2 }}
+          disabled={!!errors.employeeName || !!errors.phone}
         >
           Update
         </Button>

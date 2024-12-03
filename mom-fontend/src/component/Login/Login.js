@@ -61,7 +61,7 @@ function Login() {
     }
   };
 
-  // Set up the Google login hook with onSuccess and onError
+
   const googleLogin = useGoogleLogin({
     onSuccess: responseGoogle,
     onError: responseGoogle,

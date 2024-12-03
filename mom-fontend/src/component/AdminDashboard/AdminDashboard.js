@@ -1,21 +1,15 @@
 import React, { useState, useRef } from "react";
 import { useEffect } from "react";
-import { useParams } from 'react-router-dom';
 import "./AdminDashboard.css";
-import logo1 from "../../assets/logo1.png";
 import { toast } from "react-toastify";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import { TextField, MenuItem, Button, InputLabel, Select, FormControl, FormHelperText, Switch, FormControlLabel } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { logoutUser, addEmployee, listEmployee, activateEmployee, deactiveEmployee, } from "../../services/api";
-import AuthService from "../AuthService/Authservice";
-import logo from "../../assets/logo.png";
-import meetingicon from "../../assets/meetingicon.png"
-import action from '../../assets/double-tap.png'
-import manage from "../../assets/management.png"
+import { addEmployee, listEmployee, activateEmployee, deactiveEmployee, } from "../../services/api";
 import { getEmployeeById } from "../../services/api";
-import Profile from "../Profile/Profile";
 import { jwtDecode } from 'jwt-decode';
+import Navbar from '../Navbar/Navbar'
+import Sidebar from '../Sidebar/Sidebar'
 
 
 const MeetingPage = ({ showModal }) => {
@@ -35,31 +29,10 @@ const MeetingPage = ({ showModal }) => {
     const [employeeEmail, setEmployeeEmail] = useState('');
     const [employeeRole, setEmployeeRole] = useState('');
 
-    const handleOpenProfileModal = () => {
-        setOpenProfileModal(true);
-    };
 
-    const handleCloseProfileModal = () => {
-        setOpenProfileModal(false);
-    };
 
     const navigate = useNavigate();
-    const location = useLocation();
-
-    const { profilePicture } = location.state || {};
-    const baseUrl = 'http://localhost:5000/';
-    let formattedProfilePicture;
-
-    // // Check if `profilePicture` exists and apply the condition
-    // if (profilePicture) {
-    //     if (profilePicture.startsWith('https://lh3.googleusercontent.com/a')) {
-    //         formattedProfilePicture = profilePicture;
-    //     } else {
-    //         formattedProfilePicture = `${baseUrl}${profilePicture}`;
-    //     }
-    // } else {
-    //     formattedProfilePicture = `${baseUrl}${profilePicture}`;
-    // }
+  
 
     const [addEmployeeForm, setAddEmployeeForm] = useState({
         employeeName: "",
@@ -85,13 +58,19 @@ const MeetingPage = ({ showModal }) => {
     const fetchEmployeeById = async () => {
         try {
             const token = localStorage.getItem('authToken');
+            console.log(token);
+            
             if (token) {
                 const decodedToken = jwtDecode(token);
+                console.log("decodedToken",decodedToken);
+                
                 const employeeId = decodedToken.id;
 
                 const response = await getEmployeeById(employeeId);
 
                 setEmployeeData(response);
+                console.log("tttttttttt",response);
+                
 
                 // Assuming response has profilePicture
                 const baseUrl = 'http://localhost:5000/';
@@ -103,11 +82,12 @@ const MeetingPage = ({ showModal }) => {
                         formattedProfilePicture = `${baseUrl}${response.profilePicture}`;
                     }
                 }
-
+                console.log("rrrrrrrrr",response);
+                
                 setEmployeeName(response.employeeName);
-                setEmployeeEmail(response.employeeEmail); // Assuming these exist in the response
-                setEmployeeRole(response.employeeRole);   // Assuming these exist in the response
-                setEmployeeId(employeeId); // Setting Employee ID for reference
+                setEmployeeEmail(response.employeeEmail); 
+                setEmployeeRole(response.employeeRole);   
+                setEmployeeId(employeeId); 
                 setEmployeeData({ ...response, profilePicture: formattedProfilePicture });
                 setemployeeProfilePicture(formattedProfilePicture);
                 
@@ -143,6 +123,7 @@ const MeetingPage = ({ showModal }) => {
             });
 
             setEmployees(employeesWithFullImageUrls);
+            console.log("fffffffff",employeesWithFullImageUrls);
             setTotalEmployees(response.data.totalEmployees || 0);
             setTotalPages(response.data.totalPages || 0);
 
@@ -172,13 +153,7 @@ const MeetingPage = ({ showModal }) => {
         fetchEmployees(page, searchKey);
 
         fetchEmployeeById();
-
-        const name = AuthService.getEmployeeName();
-        console.log('Fetched Employee Name:', name);
-        setEmployeeName(name);
     }, [page, searchKey]);
-
-
 
 
     const handleSearchChange = (e) => {
@@ -193,23 +168,10 @@ const MeetingPage = ({ showModal }) => {
         }, 500);
     };
 
-
     const handlePageChange = (newPage) => {
         setPage(newPage);
     };
 
-
-    const handleLogout = async () => {
-        try {
-            const result = await logoutUser();
-            toast.success(result.message);
-            setTimeout(() => {
-                navigate("/");
-            }, 2500);
-        } catch (error) {
-            toast.error(error.message);
-        }
-    };
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setAddEmployeeForm((prev) => ({
@@ -220,7 +182,6 @@ const MeetingPage = ({ showModal }) => {
 
         validateField(name, value);
     };
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -335,127 +296,8 @@ const MeetingPage = ({ showModal }) => {
 
     return (
         <>
-            <header className="navbar-container">
-                <nav className="navbar navbar-expand-lg navbar-light">
-                    <div className="container">
-                        <a className="navbar-brand" href="#">
-                            <img
-                                src="assets/images/Ntspl-Logo-white.png"
-                                alt="Logo"
-                                className="logo-img"
-                            />
-                        </a>
-                        <button
-                            className="navbar-toggler"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#navbarNav"
-                            aria-controls="navbarNav"
-                            aria-expanded="false"
-                            aria-label="Toggle navigation"
-                        >
-                            <span className="navbar-toggler-icon"></span>
-                        </button>
-                        <div className="collapse navbar-collapse" id="navbarNav">
-                            <ul className="navbar-nav ml-auto">
-                                <li className="nav-item active">
-                                    <a className="nav-link" href="#">
-                                        <i className="bi bi-house-door"></i> Home
-                                    </a>
-                                </li>
-                                <li className="nav-item">
-                                    <a className="nav-link" href="#">
-                                        <i className="bi bi-clock"></i> Timeline
-                                    </a>
-                                </li>
-                                <li className="nav-item">
-                                    <Link className="nav-link" to="/profile">
-                                        <i className="bi bi-person-circle"></i> Profile
-                                    </Link>
-                                </li>
-                                <li className="nav-item">
-                                    <a className="nav-link" href="#">
-                                        <i className="bi bi-gear"></i> Settings
-                                    </a>
-                                </li>
-                                <li className="nav-item dropdown">
-                                    <a
-                                        className="nav-link dropdown-toggle"
-                                        href="#"
-                                        id="navbarDropdown"
-                                        role="button"
-                                        data-bs-toggle="dropdown"
-                                        aria-expanded="false"
-                                    >
-                                        <img
-                                            src={employeeProfilePicture || 'default-profile-picture.png'}
-                                            alt="Profile"
-                                            width="50"
-                                            height="50"
-                                        />
-
-                                        {employeeName}
-                                    </a>
-                                    <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
-                                        <li>
-                                            <a
-                                                className="dropdown-item"
-                                                onClick={handleOpenProfileModal}
-                                            >
-                                                Account
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a
-                                                className="dropdown-item"
-                                                onClick={handleLogout}
-                                            >
-                                                Logout
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </nav>
-
-                {openProfileModal && (
-                    <Profile
-                        open={openProfileModal}
-                        handleClose={handleCloseProfileModal}
-                        employeeData={employeeData}
-                    />
-                )}
-            </header>
-
-
-            <div className="sidebar">
-                <div className="logo">
-                    <img src={logo1} alt="Logo" />
-                </div>
-                <ul className="navbar-nav me-auto mt-5">
-                    <li className="nav-item">
-                        <a className="nav-link text-white d-flex gap-2 align-items-center">
-                            <img src={meetingicon} alt="Meetings" />
-                            <span className="nav-link-label">Meetings</span>
-                        </a>
-                    </li>
-                    <li className="nav-item">
-                        <a className="nav-link text-white d-flex gap-2 align-items-center">
-                            <img src={action} alt="Action" />
-                            <span className="nav-link-label">Action</span>
-                        </a>
-                    </li>
-                    <li className="nav-item">
-                        <a className="nav-link text-white d-flex gap-2 align-items-center">
-                            <img src={manage} alt="Manage" />
-                            <span className="nav-link-label">Manage</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
+           <Navbar/>
+            <Sidebar/>
             <div className="main-content">
                 <div className="Action-list-page">
                     <div className="meeting-header-text">

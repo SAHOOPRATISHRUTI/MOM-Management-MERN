@@ -4,71 +4,100 @@ import "./Userdashboard.css";
 import logo1 from "../../assets/logo1.png";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { logoutUser, listEmployee,} from "../../services/api";
-import AuthService from "../AuthService/Authservice";
-import { Link ,useLocation} from "react-router-dom";
-import logo from "../../assets/logo.png";
-import meetingicon from "../../assets/meetingicon.png"
-import action from '../../assets/double-tap.png'
-import manage from "../../assets/management.png"
+import { logoutUser, listEmployee, } from "../../services/api";
+import { getEmployeeById } from "../../services/api";
+import { jwtDecode } from 'jwt-decode';
+import Navbar from '../Navbar/Navbar'
+import Sidebar from '../Sidebar/Sidebar'
 
-function UserDashboard() {
+function UserDashboard({ showModal }) {
     const [employeeName, setEmployeeName] = useState('');
-
     const [employees, setEmployees] = useState([]);
     const [totalEmployees, setTotalEmployees] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [page, setPage] = useState(1);
-    const [searchKey, setSearchKey] = useState("");
-    const [loading, setLoading] = useState(false)
+    const [searchKey, setSearchKey] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [employeeData, setEmployeeData] = useState(null);
+    const [openProfileModal, setOpenProfileModal] = useState(false);
+    const [employeeId, setEmployeeId] = useState(null);
+    const [employeeProfilePicture, setemployeeProfilePicture] = useState('');
+    const [employeeEmail, setEmployeeEmail] = useState('');
+    const [employeeRole, setEmployeeRole] = useState('');
+
+
+
     const navigate = useNavigate();
 
-    const location = useLocation();
 
-    const { profilePicture } = location.state || {};
-    const baseUrl = 'http://localhost:5000/';
-    let formattedProfilePicture;
-    
-    // Check if `profilePicture` exists and apply the condition
-    if (profilePicture) {
-        if (profilePicture.startsWith('https://lh3.googleusercontent.com/a')) {
-            formattedProfilePicture = profilePicture;
-        } else {
-            formattedProfilePicture = `${baseUrl}${profilePicture}`;
-        }
-    } else {
-        //formattedProfilePicture = `${baseUrl}default-profile-picture.png`; // Fallback to a default profile picture if none is provided
-    }
-    
-
-    const [addEmployeeForm, setAddEmployeeForm] = useState({
-        employeeName: "",
-        employeeId: "",
-        email: "",
-        designation: "",
-        department: "",
-        unit: "",
-    });
-
-    const [errors, setErrors] = useState({
-        employeeName: "",
-        employeeId: "",
-        email: "",
-        designation: "",
-        department: "",
-        unit: "",
-    });
 
     const searchTimeout = useRef(null);
+
+
+    const fetchEmployeeById = async () => {
+        try {
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                const decodedToken = jwtDecode(token);
+                const employeeId = decodedToken.id;
+
+                const response = await getEmployeeById(employeeId);
+
+                setEmployeeData(response);
+
+                // Assuming response has profilePicture
+                const baseUrl = 'http://localhost:5000/';
+                let formattedProfilePicture = null;
+                if (response.profilePicture) {
+                    if (response.profilePicture.startsWith('https://lh3.googleusercontent.com/a')) {
+                        formattedProfilePicture = response.profilePicture;
+                    } else {
+                        formattedProfilePicture = `${baseUrl}${response.profilePicture}`;
+                    }
+                }
+
+                setEmployeeName(response.employeeName);
+                setEmployeeEmail(response.employeeEmail); // Assuming these exist in the response
+                setEmployeeRole(response.employeeRole);   // Assuming these exist in the response
+                setEmployeeId(employeeId); // Setting Employee ID for reference
+                setEmployeeData({ ...response, profilePicture: formattedProfilePicture });
+                setemployeeProfilePicture(formattedProfilePicture);
+
+            }
+        } catch (error) {
+            console.error("Error fetching employee by ID:", error);
+        }
+    };
 
 
     const fetchEmployees = async (page, searchKey = "") => {
         try {
             setLoading(true);
-            const response = await listEmployee(page, 5, '-1', searchKey);  
-            setEmployees(response.data.employeeData || []);
+
+            const response = await listEmployee(page, 5, '-1', searchKey);
+            const baseUrl = 'http://localhost:5000/';
+
+            const employeesWithFullImageUrls = response.data.employeeData.map(employee => {
+                let formattedProfilePicture = null;
+
+                if (employee.profilePicture) {
+                    if (employee.profilePicture.startsWith('https://lh3.googleusercontent.com/a')) {
+                        formattedProfilePicture = employee.profilePicture;
+                    } else {
+                        formattedProfilePicture = `${baseUrl}${employee.profilePicture}`;
+                    }
+                }
+
+                return {
+                    ...employee,
+                    profilePicture: formattedProfilePicture
+                };
+            });
+
+            setEmployees(employeesWithFullImageUrls);
             setTotalEmployees(response.data.totalEmployees || 0);
             setTotalPages(response.data.totalPages || 0);
+
         } catch (error) {
             console.error("Error fetching employees:", error);
             setEmployees([]);
@@ -79,7 +108,26 @@ function UserDashboard() {
         }
     };
 
-    // Handle search input changes with debounce
+    useEffect(() => {
+        if (employeeId) {
+            fetchEmployeeById(employeeId);
+        }
+    }, [employeeId]);
+
+    useEffect(() => {
+        if (showModal) {
+            fetchEmployeeById();
+        }
+    }, [showModal]);
+
+    useEffect(() => {
+        fetchEmployees(page, searchKey);
+        fetchEmployeeById();
+    }, [page, searchKey]);
+
+
+
+
     const handleSearchChange = (e) => {
         const searchValue = e.target.value;
         setSearchKey(searchValue);
@@ -92,30 +140,9 @@ function UserDashboard() {
         }, 500);
     };
 
-    // Handle page change
+
     const handlePageChange = (newPage) => {
         setPage(newPage);
-    };
-
-    // Get the employee's name after login and fetch employees
-    useEffect(() => {
-        fetchEmployees(page, searchKey);
-        const name = AuthService.getEmployeeName();  // Fetch employee name from AuthService
-        console.log('Fetched Employee Name:', name); 
-        setEmployeeName(name);  // Set the employee name in state
-    }, [page, searchKey]);  // Re-run the effect on page or searchKey change
-
-
-    const handleLogout = async () => {
-        try {
-            const result = await logoutUser();
-            toast.success(result.message);
-            setTimeout(() => {
-                navigate("/");
-            }, 2500);
-        } catch (error) {
-            toast.error(error.message);
-        }
     };
 
 
@@ -124,118 +151,8 @@ function UserDashboard() {
 
     return (
         <>
-        Welcome {employeeName}
-            <header className="navbar-container">
-                <nav className="navbar navbar-expand-lg navbar-light">
-                    <div className="container">
-                        <a className="navbar-brand" href="#">
-                            <img
-                                src="assets/images/Ntspl-Logo-white.png"
-                                alt="Logo"
-                                className="logo-img"
-                            />
-                        </a>
-                        <button
-                            className="navbar-toggler"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#navbarNav"
-                            aria-controls="navbarNav"
-                            aria-expanded="false"
-                            aria-label="Toggle navigation"
-                        >
-                            <span className="navbar-toggler-icon"></span>
-                        </button>
-                        <div className="collapse navbar-collapse" id="navbarNav">
-                            <ul className="navbar-nav ml-auto">
-                                <li className="nav-item active">
-                                    <a className="nav-link" href="#">
-                                        <i className="bi bi-house-door"></i> Home
-                                    </a>
-                                </li>
-                                <li className="nav-item">
-                                    <a className="nav-link" href="#">
-                                        <i className="bi bi-clock"></i> Timeline
-                                    </a>
-                                </li>
-                                <li className="nav-item">
-                                    <a className="nav-link" href="#">
-                                        <i className="bi bi-person-circle"></i> Profile
-                                    </a>
-                                </li>
-                                <li className="nav-item">
-                                    <a className="nav-link" href="#">
-                                        <i className="bi bi-gear"></i> Settings
-                                    </a>
-                                </li>
-                                <li className="nav-item dropdown">
-                                    <a
-                                        className="nav-link dropdown-toggle"
-                                        href="#"
-                                        id="navbarDropdown"
-                                        role="button"
-                                        data-bs-toggle="dropdown"
-                                        aria-expanded="false"
-                                    >
-                                       <img
-                                            src={formattedProfilePicture || logo}
-                                            alt="Profile"
-                                            width="50"
-                                            height="50"
-                                        />
-                                        {employeeName || 'guest'}
-                                    </a>
-                                    <ul
-                                        className="dropdown-menu"
-                                        aria-labelledby="navbarDropdown"
-                                    >
-                                        <li>
-                                            <a className="dropdown-item">
-                                              <Link to='/profile'>Account</Link>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a
-                                                className="dropdown-item"
-                                                href="#"
-                                                onClick={handleLogout}
-                                            >
-                                                Logout
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </nav>
-            </header>
-
-            <div className="sidebar">
-                <div className="logo">
-                    <img src={logo1} alt="Logo" />
-                </div>
-                <ul className="navbar-nav me-auto mt-5">
-                    <li className="nav-item">
-                        <a className="nav-link text-white d-flex gap-2 align-items-center">
-                            <img src={meetingicon} alt="Meetings" />
-                            <span className="nav-link-label">Meetings</span>
-                        </a>
-                    </li>
-                    <li className="nav-item">
-                        <a className="nav-link text-white d-flex gap-2 align-items-center">
-                            <img src={action} alt="Action" />
-                            <span className="nav-link-label">Action</span>
-                        </a>
-                    </li>
-                    <li className="nav-item">
-                        <a className="nav-link text-white d-flex gap-2 align-items-center">
-                            <img src={manage} alt="Manage" />
-                            <span className="nav-link-label">Manage</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
+            <Navbar />
+            <Sidebar />
 
             <div className="main-content">
                 <div className="Action-list-page">
@@ -272,6 +189,7 @@ function UserDashboard() {
                                 <thead>
                                     <tr>
                                         <th>Employee Name</th>
+                                        <th>Profile Picture</th>
                                         <th>Employee ID</th>
                                         <th>Designation</th>
                                         <th>Department</th>
@@ -285,6 +203,17 @@ function UserDashboard() {
                                         employees.map((employee) => (
                                             <tr key={employee._id}>
                                                 <td>{employee.employeeName}</td>
+                                                <td>
+                                                    {employee.profilePicture ? (
+                                                        <img
+                                                            src={employee.profilePicture}
+                                                            alt="Profile"
+                                                            style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+                                                        />
+                                                    ) : (
+                                                        <span>No Image</span>  // Display a fallback text if there's no image
+                                                    )}
+                                                </td>
                                                 <td>{employee.employeeId}</td>
                                                 <td>{employee.designation}</td>
                                                 <td>{employee.department}</td>
