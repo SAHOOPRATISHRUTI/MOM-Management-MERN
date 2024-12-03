@@ -126,8 +126,6 @@ function UserDashboard({ showModal }) {
     }, [page, searchKey]);
 
 
-
-
     const handleSearchChange = (e) => {
         const searchValue = e.target.value;
         setSearchKey(searchValue);
@@ -140,13 +138,9 @@ function UserDashboard({ showModal }) {
         }, 500);
     };
 
-
     const handlePageChange = (newPage) => {
         setPage(newPage);
     };
-
-
-
 
 
     return (
@@ -211,7 +205,7 @@ function UserDashboard({ showModal }) {
                                                             style={{ width: '50px', height: '50px', borderRadius: '50%' }}
                                                         />
                                                     ) : (
-                                                        <span>No Image</span>  // Display a fallback text if there's no image
+                                                        <span>No Image</span>  
                                                     )}
                                                 </td>
                                                 <td>{employee.employeeId}</td>

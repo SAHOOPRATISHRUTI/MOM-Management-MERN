@@ -466,7 +466,7 @@ const MeetingPage = ({ showModal }) => {
                                                             style={{ width: '50px', height: '50px', borderRadius: '50%' }}
                                                         />
                                                     ) : (
-                                                        <span>No Image</span>  // Display a fallback text if there's no image
+                                                        <span>No Image</span>  
                                                     )}
                                                 </td>
 
