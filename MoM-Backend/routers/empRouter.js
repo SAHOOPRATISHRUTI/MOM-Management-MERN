@@ -59,5 +59,7 @@ router.put('/profile/:id', upload.single('profilePicture'), async (req, res) => 
 
 router.get('/employees/:id', employeeController.getEmployeeDetails);
 
+router.get('/idstatus/:id',employeeController.getEmployeeStatus)
+
 
 module.exports = router;

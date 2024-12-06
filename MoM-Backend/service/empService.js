@@ -634,6 +634,20 @@ const updateEmployeeProfile = async (id, updateData) => {
     }
   };
 
+  const getStatus = async (id) => {
+    try {
+      const employee = await EmployeeUser.findById(id);
+      if (!employee) {
+        throw new Error('Employee not found');
+      }
+      return { isActive: employee.isActive }; 
+    } catch (error) {
+      console.error('Error in getStatus:', error.message);
+      throw new Error(error.message || 'Error getting status');
+    }
+  };
+  
+
 
 module.exports = {
     login,
@@ -649,5 +663,6 @@ module.exports = {
     activateEmployee,
     deactivateEmployee,
     updateEmployeeProfile,
-    getEmployeeById
+    getEmployeeById,
+    getStatus
 }

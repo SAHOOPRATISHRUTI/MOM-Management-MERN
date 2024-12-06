@@ -462,6 +462,16 @@ const editProfile = async (req, res) => {
     }
   }
   
+  const getEmployeeStatus = async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      const status = await authService.getStatus(id);
+      res.status(200).json(status); 
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
 
 module.exports = {
     login,
@@ -477,6 +487,7 @@ module.exports = {
     activateEmployee,
     deactivateEmployee,
     editProfile,
-    getEmployeeDetails
+    getEmployeeDetails,
+    getEmployeeStatus
 
 };

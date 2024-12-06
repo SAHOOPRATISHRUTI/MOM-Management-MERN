@@ -11,4 +11,9 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
-
+.css-1umw9bq-MuiSvgIcon-root{
+  fill:white !important;
+}
+.css-1588512-MuiButtonBase-root-MuiButton-root{
+  color: white !important;
+}

@@ -402,6 +402,33 @@ const getEmployeeById = async (id) => {
   }
 };
 
+const getEmployeeStatus = async (id) => {
+  try {
+      console.log("Fetching employee status with ID:", id); // Log for debugging
+
+      if (!id) {
+          throw new Error("Employee ID is required");
+      }
+
+      const response = await axios.get(`${API_URL}/idstatus/${id}`);
+      
+      console.log("Employee status fetched successfully:", response.data);
+      return response.data;
+  } catch (error) {
+      // Enhanced error logging
+      if (error.response) {
+          console.error("Server Error:", error.response.data);
+          throw new Error(error.response.data.message || 'Failed to fetch employee status');
+      } else if (error.request) {
+          console.error("No response from server:", error.request);
+          throw new Error('No response from server');
+      } else {
+          console.error("Request Error:", error.message);
+          throw new Error('An error occurred during the request');
+      }
+  }
+};
+
 
 export { 
          loginUser,
@@ -418,5 +445,6 @@ export {
         deactiveEmployee,
         googleAuth,
         updateEmployeeProfile,
-        getEmployeeById
+        getEmployeeById,
+        getEmployeeStatus
       };
