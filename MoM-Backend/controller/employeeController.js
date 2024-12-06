@@ -2,7 +2,8 @@ const authService = require('../service/empService');
 const Responses = require('../helpers/response');
 const messages = require('../constants/constMessage');
 const validator = require('validator')
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const { response } = require('express');
 
 const login = async (req, res) => {
     const { email, password } = req.body;
@@ -467,12 +468,17 @@ const editProfile = async (req, res) => {
   
     try {
       const status = await authService.getStatus(id);
-      res.status(200).json(status); 
+  
+      const statusMessage = status.isActive ? "Status is Active" : "You have been deactivated by Admin";
+      
+      return Responses.successResponse(req, res, { message: statusMessage, status }, messages.successstaus, 200);
     } catch (error) {
-      res.status(500).json({ message: error.message });
+
+      return Responses.errorResponse(req, res, null, messages.errorstatus, 500);
     }
   };
-
+  
+  
 module.exports = {
     login,
     signup,

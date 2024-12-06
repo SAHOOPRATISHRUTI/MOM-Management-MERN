@@ -137,12 +137,14 @@ useEffect(() => {
     try {
       const response = await getEmployeeStatus(employeeId);
       console.log("respppppppppppp",response);
+      console.log("ddddddddd",response.data.status);
       
-      if (response.isActive === false) {
-        toast.error("Your account has been deactivated by the admin.");
+      
+      if (response.data.status.isActive === false) {
+        toast.error(response.data.message);
         setTimeout(() => {
           navigate("/");
-        }, 2500);
+        });
       }
     } catch (error) {
       console.error("Error fetching employee status:", error);

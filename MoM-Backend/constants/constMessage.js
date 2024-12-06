@@ -83,7 +83,9 @@ const messages = {
      CREATED_SUCCESS: "Data created successfully.",
      UPDATED_SUCCESS: "Data updated successfully.",
      DELETED_SUCCESS: "Data deleted successfully.",
-     updateDatafail:"Data updated Fail"
+     updateDatafail:"Data updated Fail",
+     successstaus:"Status fetched Sucessfully",
+     errorstatus:"Your account is deactivated by Admin"
 
 };
 
