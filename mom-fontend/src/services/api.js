@@ -409,13 +409,11 @@ const getEmployeeStatus = async (id) => {
       if (!id) {
           throw new Error("Employee ID is required");
       }
-
       const response = await axios.get(`${API_URL}/idstatus/${id}`);
       
       console.log("Employee status fetched successfully:", response.data);
       return response.data;
   } catch (error) {
-      // Enhanced error logging
       if (error.response) {
           console.error("Server Error:", error.response.data);
           throw new Error(error.response.data.message || 'Failed to fetch employee status');
@@ -428,6 +426,44 @@ const getEmployeeStatus = async (id) => {
       }
   }
 };
+
+const importfromcsv = async(file) =>{
+  try{
+    console.log("CSV file started");
+
+    const formData = new FormData()
+    formData.append("file",file)
+
+    if(!file){
+      console.log("File Not found");
+      
+    }
+
+    const response =await axios.get(`${API_URL}/upload-csv`,formData,{
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })
+
+    console.log("CSV import sucessfully");
+  }
+    catch (error) {
+      if (error.response) {
+        console.error("Server Error:", error.response.data);
+        throw new Error(error.response.data.message || "Failed to import CSV file");
+      } else if (error.request) {
+        console.error("No response from server:", error.request);
+        throw new Error("No response from server");
+      } else {
+        console.error("Request Error:", error.message);
+        throw new Error("An error occurred during the CSV import request");
+      }
+    }
+
+  
+}
+
+
 
 
 export { 

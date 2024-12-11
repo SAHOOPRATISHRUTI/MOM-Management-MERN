@@ -85,7 +85,9 @@ const messages = {
      DELETED_SUCCESS: "Data deleted successfully.",
      updateDatafail:"Data updated Fail",
      successstaus:"Status fetched Sucessfully",
-     errorstatus:"Your account is deactivated by Admin"
+     errorstatus:"Your account is deactivated by Admin",
+     FILE_FETCHED_SUCCESS:"CSV-File Fetched Sucessfully",
+     FILE_FETCHED_UNSUCCESS:"Facing Error while fetching CSV-File",
 
 };
 

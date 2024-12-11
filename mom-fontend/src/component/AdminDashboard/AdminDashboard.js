@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { useEffect } from "react";
 import "./AdminDashboard.css";
 import { toast } from "react-toastify";
-import { useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { TextField, MenuItem, Button, InputLabel, Select, FormControl, FormHelperText, Switch, FormControlLabel } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { addEmployee, listEmployee, activateEmployee, deactiveEmployee, } from "../../services/api";
@@ -32,7 +32,7 @@ const MeetingPage = ({ showModal }) => {
 
 
     const navigate = useNavigate();
-  
+
 
     const [addEmployeeForm, setAddEmployeeForm] = useState({
         employeeName: "",
@@ -59,18 +59,18 @@ const MeetingPage = ({ showModal }) => {
         try {
             const token = localStorage.getItem('authToken');
             console.log(token);
-            
+
             if (token) {
                 const decodedToken = jwtDecode(token);
-                console.log("decodedToken",decodedToken);
-                
+                console.log("decodedToken", decodedToken);
+
                 const employeeId = decodedToken.id;
 
                 const response = await getEmployeeById(employeeId);
 
                 setEmployeeData(response);
-                console.log("tttttttttt",response);
-                
+                console.log("tttttttttt", response);
+
 
                 // Assuming response has profilePicture
                 const baseUrl = 'http://localhost:5000/';
@@ -82,15 +82,15 @@ const MeetingPage = ({ showModal }) => {
                         formattedProfilePicture = `${baseUrl}${response.profilePicture}`;
                     }
                 }
-                console.log("rrrrrrrrr",response);
-                
+                console.log("rrrrrrrrr", response);
+
                 setEmployeeName(response.employeeName);
-                setEmployeeEmail(response.employeeEmail); 
-                setEmployeeRole(response.employeeRole);   
-                setEmployeeId(employeeId); 
+                setEmployeeEmail(response.employeeEmail);
+                setEmployeeRole(response.employeeRole);
+                setEmployeeId(employeeId);
                 setEmployeeData({ ...response, profilePicture: formattedProfilePicture });
                 setemployeeProfilePicture(formattedProfilePicture);
-                
+
             }
         } catch (error) {
             console.error("Error fetching employee by ID:", error);
@@ -123,7 +123,7 @@ const MeetingPage = ({ showModal }) => {
             });
 
             setEmployees(employeesWithFullImageUrls);
-            console.log("fffffffff",employeesWithFullImageUrls);
+            console.log("fffffffff", employeesWithFullImageUrls);
             setTotalEmployees(response.data.totalEmployees || 0);
             setTotalPages(response.data.totalPages || 0);
 
@@ -296,8 +296,8 @@ const MeetingPage = ({ showModal }) => {
 
     return (
         <>
-           <Navbar/>
-            <Sidebar/>
+            <Navbar />
+            <Sidebar />
             <div className="main-content">
                 <div className="Action-list-page">
                     <div className="meeting-header-text">
@@ -349,9 +349,7 @@ const MeetingPage = ({ showModal }) => {
                                     </Grid>
                                     <Grid item xs={12} sm={6} md={4}>
                                         <FormControl fullWidth error={!!errors.designation}>
-                                            <InputLabel id="designation-label">
-                                                Designation
-                                            </InputLabel>
+                                            <InputLabel id="designation-label">Designation</InputLabel>
                                             <Select
                                                 id="designation"
                                                 name="designation"
@@ -406,9 +404,24 @@ const MeetingPage = ({ showModal }) => {
                                 >
                                     Submit
                                 </Button>
+
+                                {/* CSV Import Button */}
+                                <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+                                    <Button>
+                                        Import CSV
+                                        <input
+                                            type="file"
+                                            accept=".csv"
+                                            style={{ display: 'none' }}
+                                            //onChange={handleFileUpload} // Handle the file upload event
+                                        />
+                                    </Button>
+                                </div>
                             </form>
                         </div>
                     </div>
+
+
 
                     <div className="table-header">
                         <h4 className="h4 mb-3">Manage Employee</h4>
@@ -466,7 +479,7 @@ const MeetingPage = ({ showModal }) => {
                                                             style={{ width: '50px', height: '50px', borderRadius: '50%' }}
                                                         />
                                                     ) : (
-                                                        <span>No Image</span>  
+                                                        <span>No Image</span>
                                                     )}
                                                 </td>
 

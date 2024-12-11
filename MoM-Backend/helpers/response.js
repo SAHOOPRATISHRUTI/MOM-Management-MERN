@@ -1,3 +1,4 @@
+// responses.js
 const successResponse = (req, res, data, message, statusCode = 200) => {
   console.log("message---------", message);
   return res.status(statusCode).send({
@@ -22,7 +23,6 @@ const failResponse = (req, res, data, message, statusCode = 400) => {
   });
 };
 
-
 const errorResponse = (res, message, errorKey = 500) => {
   return res.status(errorKey).send({
     error: true,
@@ -31,7 +31,6 @@ const errorResponse = (res, message, errorKey = 500) => {
     data: null
   });
 };
-
 
 module.exports = {
   errorResponse,

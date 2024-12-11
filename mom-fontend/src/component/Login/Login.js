@@ -180,12 +180,13 @@ function Login() {
                   />
                 </div>
 
-                <div className="form-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="form-group forgot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Button
+                  class="forgot"
                     onClick={handleForgotPassword}
                     style={{
                       textDecoration: 'none',
-                      color: ' rgb(14 80 207)',
+                      color: 'rgb(14 80 207) !important',
                       display: 'contents'
                     }}
                   >

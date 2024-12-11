@@ -2,7 +2,7 @@ const authService = require('../service/empService');
 const Responses = require('../helpers/response');
 const messages = require('../constants/constMessage');
 const validator = require('validator')
-const mongoose = require('mongoose');
+const path = require('path');
 const { response } = require('express');
 
 const login = async (req, res) => {
@@ -57,16 +57,14 @@ const signup = async (req, res) => {
     let profilePicture;
 
     try {
-        // Handle file upload: If a file is uploaded, retrieve its filename; otherwise, set to null
         if (req.file) {
-            profilePicture = req.file.path; // Multer stores file info in `req.file`
+            profilePicture = req.file.path; 
         } else {
-            profilePicture = null; // Default to null if no file is uploaded
+            profilePicture = null;
         }
         console.log(profilePicture);
         
 
-        // Validate input fields
         if (!employeeName) {
             return Responses.failResponse(req, res, null, messages.nameIsRequired, 400);
         }
@@ -80,7 +78,6 @@ const signup = async (req, res) => {
             return Responses.failResponse(req, res, null, messages.passwordRequired, 400);
         }
 
-        // Call the signup service and pass the user details
         const result = await authService.signup(
             employeeName,
             email,
@@ -92,12 +89,10 @@ const signup = async (req, res) => {
             profilePicture
         );
 
-        // Check if the user already exists (from the service result)
         if (result.existingUser) {
             return Responses.failResponse(req, res, null, messages.userAlreadyExists, 400);
         }
 
-        // Successful signup response
         return Responses.successResponse(req, res, {
             employeeName,
             email,
@@ -105,13 +100,12 @@ const signup = async (req, res) => {
             address,
             role,
             updatedAt: result.user.updatedAt,
-            profilePicture: result.user.profilePicture, // Include profile picture in the response
+            profilePicture: result.user.profilePicture, 
         }, messages.signupSuccess, 200);
 
     } catch (error) {
-        console.error('Error during signup:', error); // Log the error for debugging
+        console.error('Error during signup:', error); 
 
-        // Handle and return the error response
         return Responses.errorResponse(req, res, error.message || messages.GENERAL_ERROR, 500);
     }
 };
@@ -478,8 +472,32 @@ const editProfile = async (req, res) => {
     }
   };
   
+  const uploadCsv = async (req, res) => {
+    try {
+        const file = req.file; 
+        console.log("file--------", file);
+        
+        if (!file) {
+            return Responses.failResponse(req, res, null, messages.FILE_FETCHED_SUCCESS, 404); 
+        }
+
+        const filePath = path.resolve(__dirname, '../uploads', file.filename);
+        console.log("filePath--------", filePath);
+
+        // Call the service to process the CSV
+        const results = await authService.processCsv(filePath);
+        console.log("results--------", results);
+
+        Responses.successResponse(req, res, results, messages.FILE_FETCHED_SUCCESS, 200);
+    } catch (error) {
+        console.log("Error in uploadCsv:", error); // Log error details
+        return Responses.errorResponse(res, error.message);
+    }
+};
+
   
 module.exports = {
+    uploadCsv,
     login,
     signup,
     generateOtp,

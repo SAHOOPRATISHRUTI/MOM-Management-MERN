@@ -4,6 +4,7 @@ const employeeController = require('../controller/employeeController');
 const Middleware = require('../helpers/Middleware');
 const Validator = require('../validator/employeeValidator');
 const multer = require('multer')
+const service = require('../service/empService')
 
 
 const storage = multer.diskStorage({
@@ -17,9 +18,20 @@ const storage = multer.diskStorage({
   
 const upload = multer({ storage: storage })
 
-
+const uploadfile = multer({
+  dest:"uploads/",
+  fileFilter:(req,file,cb)=>{
+      if(file.mimetype === 'text/csv'){
+          cb(null,true)
+      }else{
+          cb(new Error('Only CSV files are allowed'),false)
+      }
+  },
+  limits:{fileSize:2*1024*1024}
+})
 
 // Define routes
+router.post('/upload-csv',uploadfile.single('file'), employeeController.uploadCsv);
 router.post('/signup', upload.single('profilePicture'), employeeController.signup);
 router.post('/login', employeeController.login);
 router.post('/generate-otp', employeeController.generateOtp);
@@ -63,3 +75,5 @@ router.get('/idstatus/:id',employeeController.getEmployeeStatus)
 
 
 module.exports = router;
+
+
