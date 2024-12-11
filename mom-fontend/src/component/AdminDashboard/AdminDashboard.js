@@ -5,11 +5,12 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { TextField, MenuItem, Button, InputLabel, Select, FormControl, FormHelperText, Switch, FormControlLabel } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { addEmployee, listEmployee, activateEmployee, deactiveEmployee, } from "../../services/api";
+import { addEmployee, listEmployee, activateEmployee, deactiveEmployee, importfromcsv } from "../../services/api";
 import { getEmployeeById } from "../../services/api";
 import { jwtDecode } from 'jwt-decode';
 import Navbar from '../Navbar/Navbar'
 import Sidebar from '../Sidebar/Sidebar'
+
 
 
 const MeetingPage = ({ showModal }) => {
@@ -294,6 +295,22 @@ const MeetingPage = ({ showModal }) => {
     };
 
 
+    const handleFileUpload = async (event) => {
+        const file = event.target.files[0]; // Get the first file selected
+
+        if (file) {
+            try {
+                
+                await importfromcsv(file);
+                console.log('CSV file uploaded successfully');
+            } catch (error) {
+                console.error('File upload failed:', error.message);
+            }
+        } else {
+            console.log('No file selected');
+        }
+    };
+
     return (
         <>
             <Navbar />
@@ -407,16 +424,18 @@ const MeetingPage = ({ showModal }) => {
 
                                 {/* CSV Import Button */}
                                 <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-                                    <Button>
+                                    <Button variant="contained" color="primary" component="label">
                                         Import CSV
+                                        {/* The input element is hidden but will trigger the file selection when the button is clicked */}
                                         <input
                                             type="file"
                                             accept=".csv"
-                                            style={{ display: 'none' }}
-                                            //onChange={handleFileUpload} // Handle the file upload event
+                                            style={{ display: 'none' }}  // Hide the input
+                                            onChange={handleFileUpload}  // Trigger file upload handler on file selection
                                         />
                                     </Button>
                                 </div>
+
                             </form>
                         </div>
                     </div>

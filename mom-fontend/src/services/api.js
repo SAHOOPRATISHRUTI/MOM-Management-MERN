@@ -439,13 +439,13 @@ const importfromcsv = async(file) =>{
       
     }
 
-    const response =await axios.get(`${API_URL}/upload-csv`,formData,{
+    const response =await axios.post(`${API_URL}/upload-csv`,formData,{
       headers: {
         "Content-Type": "multipart/form-data",
-      },
+      }
     })
 
-    console.log("CSV import sucessfully");
+    console.log("CSV import sucessfully",response);
   }
     catch (error) {
       if (error.response) {
@@ -467,6 +467,7 @@ const importfromcsv = async(file) =>{
 
 
 export { 
+  importfromcsv,
          loginUser,
          generateOTP,
          verifyOTP, 
