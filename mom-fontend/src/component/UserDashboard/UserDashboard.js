@@ -1,10 +1,10 @@
 import React, { useState, useRef } from "react";
 import { useEffect } from "react";
 import "./Userdashboard.css";
-import logo1 from "../../assets/logo1.png";
+import logo from "../../assets/logo.png";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { logoutUser, listEmployee, } from "../../services/api";
+import { listEmployee, } from "../../services/api";
 import { getEmployeeById } from "../../services/api";
 import { jwtDecode } from 'jwt-decode';
 import Navbar from '../Navbar/Navbar'
@@ -205,7 +205,9 @@ function UserDashboard({ showModal }) {
                                                             style={{ width: '50px', height: '50px', borderRadius: '50%' }}
                                                         />
                                                     ) : (
-                                                        <span>No Image</span>  
+                                                        <span><img 
+                                                        style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+                                                        src={logo}/></span>  
                                                     )}
                                                 </td>
                                                 <td>{employee.employeeId}</td>

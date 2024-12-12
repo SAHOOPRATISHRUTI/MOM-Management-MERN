@@ -643,18 +643,24 @@ const processCsv = async (filePath) => {
     const results = [];
 
     return new Promise((resolve, reject) => {
-        fs.createReadStream(filePath)
+        const stream = fs.createReadStream(filePath)
             .pipe(csvParser())
-            .on('data', (data) => {
-                console.log("Parsed data:", data); // Log the parsed data
-                results.push(data);
+            .on('data', async (data) => {
+                try {
+                    if (data.password) {
+                        const hashedPassword = await bcrypt.hash(data.password, 10);
+                        data.password = hashedPassword;
+                    }
+                    results.push(data);
+                } catch (error) {
+                    reject(`Error hashing password: ${error.message}`);
+                }
             })
             .on('end', async () => {
                 try {
-                    console.log("Results after parsing:", results); // Log results before insertion
                     if (results.length > 0) {
+                        console.log("Results after parsing:", results);
                         const insertedData = await EmployeeUser.insertMany(results);
-                        console.log("Inserted Data:", insertedData); // Log the inserted data
                         resolve(insertedData);
                     } else {
                         reject('No valid data found in the CSV file');
@@ -662,16 +668,81 @@ const processCsv = async (filePath) => {
                 } catch (dbError) {
                     reject(`Failed to save data to the database: ${dbError.message}`);
                 } finally {
-                    fs.unlinkSync(filePath); // Cleanup: Delete file after processing
+                    fs.unlinkSync(filePath); // Delete the uploaded file
                 }
             })
             .on('error', (error) => {
                 reject(`Error processing CSV file: ${error.message}`);
             });
+
+        // Handle errors from the stream itself
+        stream.on('error', (streamError) => {
+            reject(`Stream error: ${streamError.message}`);
+        });
     });
 };
 
 
+// const processCsv = async (filePath) => {
+//     const results = [];
+    
+//     return new Promise((resolve, reject) => {
+//         const fileStream = fs.createReadStream(filePath);
+        
+//         let rawData = ''; 
+
+  
+//         fileStream.on('data', (chunk) => {
+//             rawData += chunk.toString(); // Accumulate data as text
+//         });
+
+//         fileStream.on('end', async () => {
+//             // Split the data into lines
+//             const lines = rawData.split('\n').filter(line => line.trim() !== ''); // Ignore empty lines
+//             const parsedData = {};
+
+//             lines.forEach(line => {
+//                 const [key, value] = line.split(':').map(part => part.trim()); // Split by ':'
+//                 if (key && value) {
+//                     parsedData[key] = value;
+//                 }
+//             });
+
+//             console.log("Parsed key-value pairs:", parsedData);
+
+//             // Handle password hashing asynchronously
+//             if (parsedData.password) {
+//                 try {
+//                     parsedData.password = await bcrypt.hash(parsedData.password, 10);
+//                 } catch (err) {
+//                     return reject(`Error hashing password: ${err.message}`);
+//                 }
+//             }
+
+//             results.push(parsedData);
+
+//             // Insert into the database if results are populated
+//             if (results.length > 0) {
+//                 try {
+//                     const insertedData = await EmployeeUser.insertMany(results);
+//                     console.log("Inserted Data:", insertedData);
+//                     resolve(insertedData);
+//                 } catch (dbError) {
+//                     reject(`Failed to save data to the database: ${dbError.message}`);
+//                 }
+//             } else {
+//                 reject('No valid data found in the file.');
+//             }
+
+//             // Cleanup: remove the file after processing
+//             fs.unlinkSync(filePath);
+//         });
+
+//         fileStream.on('error', (error) => {
+//             reject(`Error reading file: ${error.message}`);
+//         });
+//     });
+// };
 
 
 module.exports = {

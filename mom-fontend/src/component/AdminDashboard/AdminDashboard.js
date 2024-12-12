@@ -10,8 +10,8 @@ import { getEmployeeById } from "../../services/api";
 import { jwtDecode } from 'jwt-decode';
 import Navbar from '../Navbar/Navbar'
 import Sidebar from '../Sidebar/Sidebar'
-
-
+import logo from "../../assets/logo.png";
+import Fileupload from '../CSVFileUpload/Fileupload'
 
 const MeetingPage = ({ showModal }) => {
 
@@ -424,16 +424,7 @@ const MeetingPage = ({ showModal }) => {
 
                                 {/* CSV Import Button */}
                                 <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-                                    <Button variant="contained" color="primary" component="label">
-                                        Import CSV
-                                        {/* The input element is hidden but will trigger the file selection when the button is clicked */}
-                                        <input
-                                            type="file"
-                                            accept=".csv"
-                                            style={{ display: 'none' }}  // Hide the input
-                                            onChange={handleFileUpload}  // Trigger file upload handler on file selection
-                                        />
-                                    </Button>
+                                <Fileupload/>
                                 </div>
 
                             </form>
@@ -498,7 +489,9 @@ const MeetingPage = ({ showModal }) => {
                                                             style={{ width: '50px', height: '50px', borderRadius: '50%' }}
                                                         />
                                                     ) : (
-                                                        <span>No Image</span>
+                                                        <span><img 
+                                                        style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+                                                        src={logo}/></span> 
                                                     )}
                                                 </td>
 

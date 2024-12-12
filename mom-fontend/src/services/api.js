@@ -438,14 +438,14 @@ const importfromcsv = async(file) =>{
       console.log("File Not found");
       
     }
-
     const response =await axios.post(`${API_URL}/upload-csv`,formData,{
       headers: {
         "Content-Type": "multipart/form-data",
       }
     })
+    return response.data;
 
-    console.log("CSV import sucessfully",response);
+    console.log("CSV import sucessfully",response.data);
   }
     catch (error) {
       if (error.response) {

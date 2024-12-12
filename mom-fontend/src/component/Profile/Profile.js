@@ -4,6 +4,7 @@ import { AccountCircle, Email, Phone, Home, PhotoCamera } from '@mui/icons-mater
 import { jwtDecode } from 'jwt-decode';
 import { updateEmployeeProfile } from '../../services/api';
 import './Profile.css';
+import { toast } from "react-toastify";
 
 function Profile({ open, handleClose, employeeData }) {
   const [formData, setFormData] = useState({
@@ -72,7 +73,7 @@ function Profile({ open, handleClose, employeeData }) {
   const handleUpdateProfile = async () => {
     if (!employeeId) {
       console.error('Employee ID is null or undefined. Unable to update profile.');
-      alert('Employee ID is missing. Please try again.');
+      toast.warn('Employee ID is missing. Please try again.');
       return;
     }
 
@@ -85,11 +86,11 @@ function Profile({ open, handleClose, employeeData }) {
 
       const response = await updateEmployeeProfile(employeeId, updatedData, profilePicture);
       console.log('Profile updated successfully:', response);
-      alert('Profile updated successfully!');
+      toast.success(response.message)
       handleClose();
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile. Please try again.');
+      toast.error('Failed to update profile. Please try again.');
     }
   };
 

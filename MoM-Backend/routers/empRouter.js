@@ -18,20 +18,26 @@ const storage = multer.diskStorage({
   
 const upload = multer({ storage: storage })
 
-const uploadfile = multer({
-  dest:"uploads/",
-  fileFilter:(req,file,cb)=>{
-      if(file.mimetype === 'text/csv'){
-          cb(null,true)
-      }else{
-          cb(new Error('Only CSV files are allowed'),false)
+const uploadFile = multer({
+  dest: 'uploads/', 
+  fileFilter: (req, file, cb) => {
+      const allowedMimetypes = [
+          'text/csv',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'text/plain'
+      ];
+      if (allowedMimetypes.includes(file.mimetype)) {
+          cb(null, true); // Accept file
+      } else {
+          cb(new Error('Only CSV, XLS, XLSX, and TXT files are allowed'), false);
       }
   },
-  limits:{fileSize:2*1024*1024}
-})
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
+});
 
 // Define routes
-router.post('/upload-csv',uploadfile.single('file'), employeeController.uploadCsv);
+router.post('/upload-csv',uploadFile.single('file'), employeeController.uploadCsv);
 router.post('/signup', upload.single('profilePicture'), employeeController.signup);
 router.post('/login', employeeController.login);
 router.post('/generate-otp', employeeController.generateOtp);
