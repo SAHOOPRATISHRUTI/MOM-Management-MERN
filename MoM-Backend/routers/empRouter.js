@@ -37,7 +37,7 @@ const uploadFile = multer({
 });
 
 // Define routes
-router.post('/upload-csv',uploadFile.single('file'), employeeController.uploadCsv);
+router.post('/upload-csv',uploadFile.single('file'), employeeController.uploadExcel);
 router.post('/signup', upload.single('profilePicture'), employeeController.signup);
 router.post('/login', employeeController.login);
 router.post('/generate-otp', employeeController.generateOtp);

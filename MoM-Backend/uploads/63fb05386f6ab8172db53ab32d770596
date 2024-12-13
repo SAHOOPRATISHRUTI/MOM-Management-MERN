@@ -1,0 +1,2 @@
+employeeName,employeeId,email,phone,password,address,role,designation,department,unit
+Nabin,CM001,nabina@gmail.com,4477885599,nabina123,123 Elm Street,user,Developer,IT,Unit A

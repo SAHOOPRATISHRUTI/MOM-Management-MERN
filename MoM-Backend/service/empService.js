@@ -14,6 +14,8 @@ const multer = require('multer');
 const csvParser = require('csv-parser');
 const fs = require('fs');
 const path = require('path');
+const xlsx = require('xlsx'); 
+
 
 
 
@@ -639,50 +641,56 @@ const getStatus = async (id) => {
 
 
 
-const processCsv = async (filePath) => {
+const processExcel = async (filePath) => {
     const results = [];
 
     return new Promise((resolve, reject) => {
-        const stream = fs.createReadStream(filePath)
-            .pipe(csvParser())
-            .on('data', async (data) => {
-                try {
+        try {
+            const workbook = xlsx.readFile(filePath);
+            const sheetName = workbook.SheetNames[0];
+            const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+            Promise.all(
+                sheetData.map(async (data) => {
                     if (data.password) {
                         const hashedPassword = await bcrypt.hash(data.password, 10);
                         data.password = hashedPassword;
                     }
-                    results.push(data);
-                } catch (error) {
-                    reject(`Error hashing password: ${error.message}`);
-                }
-            })
-            .on('end', async () => {
-                try {
-                    if (results.length > 0) {
-                        console.log("Results after parsing:", results);
-                        const insertedData = await EmployeeUser.insertMany(results);
-                        resolve(insertedData);
-                    } else {
-                        reject('No valid data found in the CSV file');
+                    const existingUser = await EmployeeUser.findOne({email:data.email});
+                    if(existingUser){
+                        console.log(`Email ${data.email} is alreday present,Skiiping`);
+                        return;
                     }
-                } catch (dbError) {
-                    reject(`Failed to save data to the database: ${dbError.message}`);
-                } finally {
-                    fs.unlinkSync(filePath); // Delete the uploaded file
-                }
-            })
-            .on('error', (error) => {
-                reject(`Error processing CSV file: ${error.message}`);
-            });
-
-        // Handle errors from the stream itself
-        stream.on('error', (streamError) => {
-            reject(`Stream error: ${streamError.message}`);
-        });
+                    results.push(data);
+                })
+            )
+                .then(async () => {
+                    if (results.length > 0) {
+                        console.log('Results after parsing:', results);
+                        try {
+                            const insertedData = await EmployeeUser.insertMany(results);
+                            resolve(insertedData);
+                        } catch (dbError) {
+                            reject(`Failed to save data to the database: ${dbError.message}`);
+                        }
+                    } else {
+                        reject('No valid data found in the Excel file');
+                    }
+                })
+                .catch((error) => {
+                    reject(`Error processing rows: ${error.message}`);
+                })
+                .finally(() => {
+                    fs.unlinkSync(filePath);
+                });
+        } catch (error) {
+            reject(`Error processing Excel file: ${error.message}`);
+        }
     });
 };
 
 
+// for upload text file
 // const processCsv = async (filePath) => {
 //     const results = [];
     
@@ -746,7 +754,8 @@ const processCsv = async (filePath) => {
 
 
 module.exports = {
-    processCsv,
+    // processCsv,
+    processExcel,
     login,
     signup,
     generateAndSaveOtp,

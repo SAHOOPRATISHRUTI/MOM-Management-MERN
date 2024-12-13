@@ -472,32 +472,56 @@ const editProfile = async (req, res) => {
     }
   };
   
-  const uploadCsv = async (req, res) => {
+//   const uploadCsv = async (req, res) => {
+//     try {
+//         const file = req.file; 
+//         console.log("file--------", file);
+        
+//         if (!file) {
+//             return Responses.failResponse(req, res, null, messages.FILE_FETCHED_SUCCESS, 404); 
+//         }
+
+//         const filePath = path.resolve(__dirname, '../uploads', file.filename);
+//         console.log("filePath--------", filePath);
+
+//         // Call the service to process the CSV
+//         const results = await authService.processCsv(filePath);
+//         console.log("results--------", results);
+
+//         Responses.successResponse(req, res, results, messages.FILE_FETCHED_SUCCESS, 200);
+//     } catch (error) {
+//         console.log("Error in uploadCsv:", error); // Log error details
+//         return Responses.errorResponse(res, error.message);
+//     }
+// };
+
+const uploadExcel = async (req, res) => {
     try {
         const file = req.file; 
         console.log("file--------", file);
         
         if (!file) {
-            return Responses.failResponse(req, res, null, messages.FILE_FETCHED_SUCCESS, 404); 
+            return Responses.failResponse(req, res, null, messages.FILE_NOT_FOUND, 404); 
         }
 
         const filePath = path.resolve(__dirname, '../uploads', file.filename);
         console.log("filePath--------", filePath);
 
-        // Call the service to process the CSV
-        const results = await authService.processCsv(filePath);
+        // Call the service to process the Excel file
+        const results = await authService.processExcel(filePath);
         console.log("results--------", results);
 
         Responses.successResponse(req, res, results, messages.FILE_FETCHED_SUCCESS, 200);
     } catch (error) {
-        console.log("Error in uploadCsv:", error); // Log error details
-        return Responses.errorResponse(res, error.message);
+        console.log("Error in uploadExcel:", error); // Log error details
+        return Responses.errorResponse(res, error.message || messages.GENERAL_ERROR);
     }
 };
 
   
 module.exports = {
-    uploadCsv,
+    // uploadCsv,
+    uploadExcel,
     login,
     signup,
     generateOtp,
