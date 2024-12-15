@@ -1,5 +1,5 @@
 #FRONTEND
----npm install
+---npm install //p\all packages will be installed
 ---npm start
 
 #BACKEND
