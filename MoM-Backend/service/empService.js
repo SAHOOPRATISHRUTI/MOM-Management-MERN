@@ -641,8 +641,12 @@ const getStatus = async (id) => {
 
 
 
+
+
+
 const processExcel = async (filePath) => {
     const results = [];
+    const skippedData = [];
 
     return new Promise((resolve, reject) => {
         try {
@@ -656,20 +660,42 @@ const processExcel = async (filePath) => {
                         const hashedPassword = await bcrypt.hash(data.password, 10);
                         data.password = hashedPassword;
                     }
-                    const existingUser = await EmployeeUser.findOne({email:data.email});
-                    if(existingUser){
-                        console.log(`Email ${data.email} is alreday present,Skiiping`);
+
+                    const existingUser = await EmployeeUser.findOne({ email: data.email });
+                    if (existingUser) {
+                        data.skippedReason = 'User mail id already exists';
+                        skippedData.push(data);
                         return;
                     }
+
                     results.push(data);
                 })
             )
                 .then(async () => {
                     if (results.length > 0) {
-                        console.log('Results after parsing:', results);
                         try {
                             const insertedData = await EmployeeUser.insertMany(results);
-                            resolve(insertedData);
+
+                            const skippedSheet = xlsx.utils.json_to_sheet(skippedData);
+                            const newWorkbook = xlsx.utils.book_new();
+                            xlsx.utils.book_append_sheet(newWorkbook, skippedSheet, 'Skipped Data');
+
+                            const fileDirectory = path.dirname(filePath);
+                            const skippedFileName = `${path.basename(filePath, '.xlsx')}_skipped.xlsx`;
+                            const skippedFilePath = path.join(fileDirectory, skippedFileName);
+
+                            xlsx.writeFile(newWorkbook, skippedFilePath);
+
+                            skippedData.forEach((item) => {
+                                item.skippedFilePath = skippedFilePath;
+                            });
+
+                            resolve({
+                                insertedData,
+                                skippedData,
+                                skippedFilePath,
+                                message: 'The skipped file is ready for download.',
+                            });
                         } catch (dbError) {
                             reject(`Failed to save data to the database: ${dbError.message}`);
                         }
@@ -688,6 +714,17 @@ const processExcel = async (filePath) => {
         }
     });
 };
+
+
+const getFilePath = (fileName) => {
+    const filePath = path.join(__dirname, '../uploads', fileName);
+    if (!fs.existsSync(filePath)) {
+        throw new Error('File not found');
+    }
+    return filePath;
+};
+
+
 
 
 // for upload text file
@@ -755,6 +792,7 @@ const processExcel = async (filePath) => {
 
 module.exports = {
     // processCsv,
+    getFilePath,
     processExcel,
     login,
     signup,

@@ -48,52 +48,7 @@ const createEmployee = async (req, res, next) => {
     }
 };
 
-// const requestOtpValidator = async (req, res, next) => {
-//     try {
-//         const otpSchema = Joi.object({
-//             email: Joi.string()
-//                 .email()
-//                 .min(3)
-//                 .max(30)
-//                 .required()
-//         });
 
-//         await otpSchema.validateAsync(req.body);
-//         next();
-//     } catch (error) {
-//         console.error('Validation Error requesting OTP:', error.details);
-//         res.status(400).json({
-//             success: false,
-//             message: 'Validation error',
-//             errors: error.details
-//         });
-//     }
-// };
-
-// const verifyOtpValidator = async (req, res, next) => {
-//     try {
-//         const otpSchema = Joi.object({
-//             email: Joi.string()
-//                 .email()
-//                 .min(3)
-//                 .max(30)
-//                 .required(),
-//             otp: Joi.string()
-//                 .pattern(/^[0-9]+$/)
-//                 .required()
-//         });
-
-//         await otpSchema.validateAsync(req.body);
-//         next();
-//     } catch (error) {
-//         console.error('Validation Error verifying OTP:', error.details);
-//         res.status(400).json({
-//             success: false,
-//             message: 'Validation error',
-//             errors: error.details
-//         });
-//     }
-// };
 
 module.exports = {
     createEmployee,

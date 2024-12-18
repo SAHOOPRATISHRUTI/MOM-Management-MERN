@@ -4,6 +4,8 @@ const messages = require('../constants/constMessage');
 const validator = require('validator')
 const path = require('path');
 const { response } = require('express');
+const fs = require('fs');
+
 
 const login = async (req, res) => {
     const { email, password } = req.body;
@@ -513,14 +515,58 @@ const uploadExcel = async (req, res) => {
 
         Responses.successResponse(req, res, results, messages.FILE_FETCHED_SUCCESS, 200);
     } catch (error) {
-        console.log("Error in uploadExcel:", error); // Log error details
+        console.log("Error in uploadExcel:", error); 
         return Responses.errorResponse(res, error.message || messages.GENERAL_ERROR);
     }
 };
 
+
+
+const downloadFile = (req, res) => {
+    const { fileName } = req.params;
+
+    try {
+        // Sanitize the filename to prevent directory traversal
+        const sanitizedFileName = path.basename(fileName);
+
+        // Get the full file path from your service
+        const filePath = authService.getFilePath(sanitizedFileName);
+
+        // Log the file path where the file is located
+        console.log('Attempting to download file from path:', filePath);
+
+        // Check if file exists
+        if (!fs.existsSync(filePath)) {
+            console.error(`File not found: ${filePath}`);
+            return Responses.errorResponse(res, messages.FILE_NOT_FOUND);
+        }
+
+        // Trigger the file download
+        res.download(filePath, (err) => {
+            if (err) {
+                console.error('Error downloading file:', err.message);
+                return Responses.errorResponse(res, err.message || messages.GENERAL_ERROR);
+            }
+            // Log the success after download completes
+            console.log('File downloaded successfully:', sanitizedFileName);
+        });
+
+    } catch (error) {
+        // Log unexpected errors and return a general error response
+        console.error('Unexpected error while processing download:', error.message);
+        return Responses.errorResponse(res, error.message || messages.GENERAL_ERROR);
+    }
+};
+
+// Download File API
+
+
+
+
   
 module.exports = {
     // uploadCsv,
+    downloadFile,
     uploadExcel,
     login,
     signup,

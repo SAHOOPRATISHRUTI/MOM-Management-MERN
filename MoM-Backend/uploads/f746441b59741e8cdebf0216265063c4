@@ -1,6 +1,0 @@
-employeeName,employeeId,email,phone,password,address,role,designation,department,unit
-John Doe,E101,johndoe@example.com,1234567890,securePass123,123 Elm Street,user,Developer,IT,Unit A
-Jane Smith,E102,janesmith@example.com,0987654321,strongPass456,456 Oak Avenue,admin,Manager,HR,Unit B
-Alice Johnson,E103,alicejohnson@example.com,5678901234,aliceSecure789,789 Pine Road,user,Analyst,Finance,Unit C
-Bob Brown,E104,bobbrown@example.com,2345678901,bobStrong456,890 Cedar Lane,user,Engineer,IT,Unit A
-Mary Davis,E105,marydavis@example.com,3456789012,maryPass789,567 Willow Way,admin,Director,Operations,Unit D

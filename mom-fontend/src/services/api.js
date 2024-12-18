@@ -463,12 +463,52 @@ const importfromcsv = async(file) =>{
   
 }
 
+const downloadFile = async (fileId) => {
+  try {
+    console.log("Sending download request for file with ID:", fileId);
+    const response = await axios.get(`${API_URL}/download/${fileId}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('authToken')}`, // Include token for authenticated requests
+      },
+      responseType: 'blob',  // This is required for downloading files
+    });
+
+    // Create a URL for the file
+    const fileURL = URL.createObjectURL(new Blob([response.data]));
+
+    // Create an invisible link element to trigger the download
+    const link = document.createElement('a');
+    link.href = fileURL;
+    link.download = 'file_name';  // You can dynamically set the filename here if needed
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up the URL object
+    URL.revokeObjectURL(fileURL);
+
+    console.log("File downloaded successfully.");
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      console.error('Server Error:', error.response.data.message);
+      throw new Error(error.response.data.message || 'Failed to download file');
+    } else if (error.request) {
+      console.error('No response from server:', error.request);
+      throw new Error('No response from server');
+    } else {
+      console.error('Error during request:', error.message);
+      throw new Error('An error occurred during the download request');
+    }
+  }
+};
+
 
 
 
 export { 
   importfromcsv,
          loginUser,
+         downloadFile,
          generateOTP,
          verifyOTP, 
          signupUser, 

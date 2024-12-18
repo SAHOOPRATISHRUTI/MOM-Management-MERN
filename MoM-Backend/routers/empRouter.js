@@ -35,7 +35,7 @@ const uploadFile = multer({
   },
   limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
 });
-
+router.get('/download/:fileName', employeeController.downloadFile);
 // Define routes
 router.post('/upload-csv',uploadFile.single('file'), employeeController.uploadExcel);
 router.post('/signup', upload.single('profilePicture'), employeeController.signup);

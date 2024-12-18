@@ -24,7 +24,7 @@ const MeetingPage = ({ showModal }) => {
     const [searchKey, setSearchKey] = useState('');
     const [loading, setLoading] = useState(false);
     const [employeeData, setEmployeeData] = useState(null);
-    const [openProfileModal, setOpenProfileModal] = useState(false);
+
     const [employeeId, setEmployeeId] = useState(null);
     const [employeeProfilePicture, setemployeeProfilePicture] = useState('');
     const [employeeEmail, setEmployeeEmail] = useState('');
@@ -32,7 +32,6 @@ const MeetingPage = ({ showModal }) => {
 
 
 
-    const navigate = useNavigate();
 
 
     const [addEmployeeForm, setAddEmployeeForm] = useState({
@@ -294,22 +293,6 @@ const MeetingPage = ({ showModal }) => {
         }));
     };
 
-
-    const handleFileUpload = async (event) => {
-        const file = event.target.files[0]; // Get the first file selected
-
-        if (file) {
-            try {
-                
-                await importfromcsv(file);
-                console.log('CSV file uploaded successfully');
-            } catch (error) {
-                console.error('File upload failed:', error.message);
-            }
-        } else {
-            console.log('No file selected');
-        }
-    };
 
     return (
         <>
